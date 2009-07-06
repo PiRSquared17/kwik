@@ -1,0 +1,81 @@
+== Bases de datos ==
+Estas claves son de acceso al servidor de bases de datos. Se deben usar en las páginas web y aplicaciones correspondientes.
+{| border="1"
+|-
+!usuario
+!clave
+!acceso desde
+!acceso a
+|-
+|wikis
+|w
+|localhost
+|wikidpto , wikitiendas
+|-
+|itm
+|itm
+|localhost
+|bdconexion , c-control (lectura)
+|-
+|cc
+|C-C
+|localhost
+|c-control
+|-
+|n
+|N
+|localhost
+|nostel
+|-
+|root
+|
+|localhost , 192.168.1.62 , 192.168.1.91
+|TODO
+|}
+
+== Eurowin ==
+* Supervisor: 3103
+* Resto usuarios: itm
+* Supervisor (antiguo): 2710
+* MySQL: 902211218
+
+== Arsys ==
+*latiendaconexion.com , compratuorange.com , adslconorange.es
+**cesar@tiendasconexion.com
+**Cantabria1
+*tiendasconexion.com , tiendasconexion.es , itmcantabria.com , conselec.net , nostel.net
+**alfredo@itmcantabria.com
+**2Pdsrntr
+*itmseguridad.com
+**itm@itmseguridad.com
+**2Pdsrntr
+
+== Cortex Systems ==
+Los daneses del Soekris (250€)
+*info@tiendasconexion.com
+*itmseguridad
+
+== Rimuhosting ==
+Los neozelandeses del servidor virtual
+*info@tiendasconexion.com
+*2pdsrntr
+*Terminal: tiendasconexion.com@host139.
+
+== Jazztel Pepita ==
+*admin
+*bbbj01
+*87.218.115.54
+*80,3390,9889
+
+== Copsesa ==
+*WLAN_02
+*192.168.0.253 static
+*192.168.0.254 dynamic
+*.0.1 server
+*88.26.184.223
+*ITM07
+
+== Natural experience ==
+Caduca 4/7/2008
+*naturalexp:barrancos -> cdmon
+*ftp://naturalexp:PLrMv6NDKjlyk.@naturalexperience.es

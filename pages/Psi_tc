@@ -1,0 +1,10 @@
+Psi es un programa de mensajería instantánea basado en el protocolo Jabber.
+Existen múltiples programas que implementan este protocolo, aunque aquí se usan como programa servidor Wildfire y cliente, Psi.
+
+Psi (''pese-i'') tiene versiones para Windows y para Unix-like, basadas en las librerías Qt.
+
+=== Problema: no manda mensajes a grupos ===
+Esto es debido a que en el cliente están ocultos los contactos desconectados (último botón de los 4 superiores).
+
+=== Problema: el icono no aparece en Ubuntu ===
+Aunque esté docklet activado el icono no aparece en el área de notificación del panel de Gnome. Esto es por que se ha quitado el área de notiicación del panel. Añadirlo (Añadir al panel -> Utilidades).

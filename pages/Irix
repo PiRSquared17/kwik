@@ -1,0 +1,153 @@
+He recibido mi Silicon Graphics Indy el 28/02/09.
+== Conexión sin monitor ==
+Ya que todavía no tengo el adaptador para el monitor 13W3, me conectaré vía ethernet. Enciendo el equipo con un teclado conectado, pues de lo contrario no cargaría el sistema operativo, permaneciendo en la consola serie PROM.
+
+Averiguo su IP, con un poco de suerte, tras probar varias subredes típicas:
+ # nmap -sP 192.168.0.*
+ 
+ Starting Nmap 4.53 ( http://insecure.org ) at 2009-03-01 11:07 CET
+ Host 192.168.0.1 appears to be up.
+ Host 192.168.0.89 appears to be up.
+ MAC Address: 08:00:69:08:AA:DC (Silicon Graphics)
+ Nmap done: 256 IP addresses (2 hosts up) scanned in 28.933 seconds
+Por defecto, IRIX viene con muchos servicios abiertos.
+ # nmap 192.168.0.89
+ 
+ Starting Nmap 4.53 ( http://insecure.org ) at 2009-03-01 11:08 CET
+ Interesting ports on 192.168.0.89:
+ Not shown: 1693 closed ports
+ PORT     STATE SERVICE
+ 1/tcp    open  tcpmux
+ 7/tcp    open  echo
+ 9/tcp    open  discard
+ 13/tcp   open  daytime
+ 19/tcp   open  chargen
+ 21/tcp   open  ftp
+ 23/tcp   open  telnet
+ 25/tcp   open  smtp
+ 37/tcp   open  time
+ 79/tcp   open  finger
+ 80/tcp   open  http
+ 111/tcp  open  rpcbind
+ 512/tcp  open  exec
+ 513/tcp  open  login
+ 514/tcp  open  shell
+ 515/tcp  open  printer
+ 1024/tcp open  kdm
+ 1025/tcp open  NFS-or-IIS
+ 1026/tcp open  LSA-or-nterm
+ 1027/tcp open  IIS
+ 5232/tcp open  sgi-dgl
+ MAC Address: 08:00:69:08:AA:DC (Silicon Graphics)
+ 
+ Nmap done: 1 IP address (1 host up) scanned in 14.533 seconds
+Probamos telnet:
+ # telnet 192.168.0.89
+ Trying 192.168.0.89...
+ Connected to 192.168.0.89.
+ Escape character is '^]'.
+ 
+ 
+ IRIX (IRIS)
+ 
+ login: root
+ IRIX Release 6.5 IP22 IRIS
+ Copyright 1987-2003 Silicon Graphics, Inc. All Rights Reserved.
+ Last login: Fri Feb 27 19:48:00 PST 2009 by UNKNOWN@192.168.0.1
+ IRIS 1#
+root no tiene clave.
+Probemos algunos comandos:
+ IRIS 1# uname -aR  #IRIX64 means a 64-bit system
+ IRIX IRIS 6.5 6.5.19f 01100601 IP22
+ IRIS 2# /usr/gfx/gfxinfo
+ Graphics board 0 is "NG1" graphics.
+        Managed (":0.0") 1024x768 
+        24 bitplanes, NG1 revision 6, REX3 revision B, VC2 revision A
+        MC revision C, xmap9 revision A, cmap revision C, bt445 revision D
+        Display 1024x768 @ 60Hz, monitor id 15
+ IRIS 3# hinv
+ CPU: MIPS R4600 Processor Chip Revision: 2.0
+ FPU: MIPS R4600 Floating Point Coprocessor Revision: 2.0
+ 1 133 MHZ IP22 Processor
+ Main memory size: 192 Mbytes
+ Instruction cache size: 16 Kbytes
+ Data cache size: 16 Kbytes
+ Integral SCSI controller 0: Version WD33C93B, revision D
+   Disk drive: unit 1 on SCSI controller 0
+ On-board serial ports: 2
+ On-board bi-directional parallel port
+ Graphics board: Indy 24-bit
+ Integral Ethernet: ec0, version 1
+ Integral ISDN: Basic Rate Interface unit 0, revision 1.0
+ Iris Audio Processor: version A2 revision 4.1.0
+ Vino video: unit 0, revision 0, IndyCam not connected
+Como no dice nada de ''Secondary'', es que el procesador es un R4600PC (no es SC, con 512KB de cache secundaria).
+
+Ahora lanzaremos aplicaciones X11 y se visualizarán en nuestro equipo.
+ IRIS 4# setenv DISPLAY 192.168.0.1:0.0
+ IRIS 5# xterm&
+ IRIS 6# xwsh -fg yellow -bg gray40 &
+
+== Creando mi usuario ==
+Para evitar trabajar como root, [http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?coll=0650&db=bks&fname=/SGI_Admin/IA_ConfigOps/ch05.html crearé mi usuario].
+ # vi /etc/passwd
+ dani:*:1000:1000:Dani:/usr/people/dani:/bin/csh
+ # vi /etc/group
+ dani:*:1000:dani
+Asigno una clave al usuario mediante ''passwd'' . Si el campo clave de la línea del usuario en ''/etc/passwd'' está vacío, no se requiere clave. Si tiene un +, está en shadow, si tiene un *, ninguna clave será válida.
+
+Creo su home:
+ # mkdir /usr/people/dani
+ # chown dani:dani /usr/people/dani
+ # cp /etc/stdcshrc /usr/people/alice/.cshrc
+ # cp /etc/stdlogin /usr/people/alice/.login
+Finalmente comprobar que todo es correcto con ''pwck'' .
+
+== Cambio de zona horaria ==
+Al escribir date la zona horaria es incorrecta. Está fijada en la variable TZ...:
+ # env | grep TZ #o echo $TZ
+la cual se lee del archivo /etc/TIMEZONE
+Todas las zonas horarias están en archivos dentro de /usr/lib/locale/TZ . Buscamos la nuestra:
+ # grep Madrid /usr/lib/locale/TZ/europe
+Y la fijamos modificando /etc/TIMEZONE
+ TZ=:Europe/Madrid
+Fijamos finalmente la fecha mmddHHMMccyy
+ # date 030112132009
+
+== Cambio de hostname e IP ==
+ # vi /etc/sys_id
+ hyoga
+ # vi /etc/hosts
+ 10.0.0.200      hyoga
+ # nvram netaddr 10.0.0.200
+
+== Instalar paquetes ==
+SGI distribuyó una colección de software denominado [http://freeware.sgi.com/ freeware], como un repositorio de binarios de software libre en forma de paquetes. Actualmente está obsoleto, pero un grupo de voluntarios ha creado [http://www.nekochan.net/what-is-nekowar.html nekoware], que provee binarios frescos de software actual. Descargar los paquetes indicados como mips3. La arquitectura mips4 (con el juego de instrucciones ampliado) está implementada en procesadores R5000 y superiores. Ejecutar un programa compilado para mips4 desde mips3 indicando que no es de esta arquitectura.
+
+Para instalar:
+ % tar xvf xxxx.tardist	#untar that tardist file
+ % su #become superuser
+ # inst -f . #instala paquetes descomprimidos en el directorio actual
+ inst> go
+ inst> quit
+Se pueden eliminar paquetes mediante remove y el nombre del paquete.
+
+Para instalar vnc, descargar...
+ neko_libjpeg-6b-mips3.tardist
+ neko_tightvnc-1.2.9-mips3.tardist
+ neko_zlib-1.2.3-r1-mips3.tardist
+
+== Apagar el sistema ==
+El comando halt deja el sistema en modo monitor para ser apagado con el pulsador frontal. Mejor aún, podemos apagarlo desde consola mediante
+ halt -p
+
+== Funcionando 'sin cabeza' ==
+Lanzar como root...
+ nvram console d
+...y no se quedará esperando en el PROM a un teclado.
+
+== IndyCam ==
+vidtomem -f kk
+imgcopy kk-00000.rgb kk.jpg
+mv kk.jpg /var/www/htdocs
+*http://cspry.co.uk/computing/Indy_admin/IndyCam.html

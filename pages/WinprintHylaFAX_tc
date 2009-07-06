@@ -1,0 +1,17 @@
+Instalar el cliente de [http://winprinthylafax.sourceforge.net/ HylaFAX], que ataca directamente al puerto 4559 (sin impresoras compartidas ni redirecciones) es tremendamente fácil.
+Este cliente es libre, y tiene unas instrucciones de instalación en su propia web, muy muy simples.
+Aquí sólo cambiamos el paso final, referente a nuestro servidor:
+#Abrir el asistente de ''Agregar una impresora'' y seleccionar ''Impresora local conectada a este equipo''. Desmarcar la casilla de impresora plug and play.
+#Seleccionar como puerto de la impresora uno nuevo:[[Imagen:faxA.png]]
+#Llegado el momento de seleccionar impresora, está bastante probada la Apple Laserwriter 12/640 PS. Posiblemente otra impresora PostScript también funcionaría.
+#Finalizamos esta parte dando un nombre descriptivo a la impresora, como FAX o similar.
+#Abrimos las propiedades de la impresora, y desde la pestaña Puertos, configuramos el puerto HFAX1: . Rellenar con el siguiente contenido:
+[[Imagen:faxB.png]]
+
+La casilla Default Notify puede contener la dirección de correo de la persona que ocupa este PC, de tal modo que no tenga que escribirla cada vez que manda un fax para obtener la confirmación de envío/fallo.
+
+== Equipos Linux ==
+Los equipos Linux pueden acceder directamente con OpenOffice al hylafax. Ejecutar el programa:
+ /usr/lib/openoffice/program/spadmin
+para administrar las impresoras. Después, las utilidades del paquete hylafax-client proveen el resto:
+ /usr/bin/sendfax -o operadora[:pass] -n -D -f 'info@__' -s 'a4' -h 'yourserv' -d (PHONE) (TMP)

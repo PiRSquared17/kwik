@@ -1,0 +1,66 @@
+Instalamos un ordenador con varias impresoras conectadas. Como mínimo es aconsejable que el equipo tenga 128 MB RAM y a 1500 MHz, para que el tiempo en procesar páginas no sea muy alto.
+
+Hay dos maneras de hacerlo:
+#instalando CUPS y compartiendo directamente la impresora por el puerto IPP (631). En los clientes UNIX la impresora se detecta automáticamente, y en los Windows se puede añadir en Impresoras de red - Conectarse a una impresora en Internet, especificando como dirección http://dirección_ip:631/printers/Nombre_de_impresora. Los controladores se piden a continuación (deben estar instalados), aunque funcionan bien unos de impresora PostScript genérica.
+#instalando CUPS y Samba para que la impresora se comparta como un recurso más de Windows. La ventaja es que los drivers se instalan al agregar la impresora.
+
+El primer método publica la impresora automáticamente a todos los CUPS a la escucha en la red. Esto es así por que manda datagramas de descubrimiento UDP al puerto 631.
+Por complicar las cosas, voy a emplear el segundo método, que es más natural en Windows (por incluir drivers). Paquetes a añadir:
+ # apt-get install samba smbclient cupsys cupsys-client linuxprinting.org-ppds
+
+Editar /etc/cups/cupsd.conf:
+ Listen 192.168.1.6:81
+ Allow 192.168.1.*
+ DefaultEncryption Never
+
+Añadir el usuario ''cupsys'' al grupo ''shadow'' en /etc/group . Recargar servicio, conectar impresora.
+Las impresoras USB aparecen como dispositivos usblp''xx''.
+Configurar en http://192.168.1.6:81 . En el momento de elegir PPD, la LaserJet 1022 funciona bien con el driver PCL 4/5 , y la 2550n con el correspondiente PPD a su modelo.
+
+Ahora editar smb.conf . Descomentar:
+ load printers = yes
+ printing = cups
+ printcap name = cups
+Comantar:
+ invalid users = root
+Importante:
+ security = user
+
+Vamos a crear los compartidos y directorios que almacenan los [[Media:drivers.zip|drivers]] de impresora (ver man cupsaddsmb en caso de duda):
+ # mkdir /var/spool/samba
+ [printers]
+   comment = All Printers
+   browseable = yes
+   path = /var/spool/samba
+   printable = yes
+   guest ok = yes
+   public = yes
+   writable = no
+   create mode = 0700
+ 
+ [print$]
+   comment = Printer Drivers
+   path = /var/lib/samba/printers
+   browseable = yes
+   read only = yes
+   guest ok = yes
+   write list = root
+ # cd /usr/share/cups
+ # tar vxf drivers.tar.gz
+ # smbpasswd root
+ # cupsaddsmb -H localhost -U root -v -a
+
+Comprobar si no existiera:
+ ln -s `which smbspool` /usr/lib/cups/backend/smb
+
+Hecho todo, reiniciar servicios. Para que no pida la contraseña al imprimir:
+ security = share
+Los permisos de la cola de impresión deberán hacerse world writeable |007 .
+
+ lp -d foo1 -o PageSize=Letter /etc/motd
+ lpr -P
+ lpr -p
+ lpr psfile.ps
+
+*http://www.linuxdevcenter.com/pub/a/linux/2005/01/13/lnxckbk_samba.html
+*http://www.gentoo.org/doc/en/quick-samba-howto.xml

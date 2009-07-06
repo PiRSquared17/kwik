@@ -1,0 +1,225 @@
+Usamos [http://docs.jquery.com/Downloading_jQuery JQuery] para [http://docs.jquery.com/Selectors seleccionar elementos] DOM al estilo CSS.
+
+== Parecido entre dos cadenas ==
+ function alikeness(str1, str2) {
+    var maxmatch = 0;
+    for (var i = 0; i < str1.length; i++) {
+		var thismatch = 0;
+		for (var j = 0; j < str2.length; j++) {
+			if (str1.charAt(i+j) == str2.charAt(j)) ++thismatch;
+		}
+		//var nsp='';
+		//for (n=0; n<i; n++) nsp+=' ';
+		//document.write(str1+"\n"+nsp+str2+"\n"+thismatch+"\n\n");
+		if (thismatch>maxmatch) maxmatch = thismatch;
+    }
+    return maxmatch;
+ }
+Ojo, IE* no soporta el tratamiento de cadenas como arrays. Por tanto str1[n] debe transcribirse como str1.charAt(n) .
+
+Combinado con iteración de ... con alikeness()
+
+== Garantizar ancho mínimo ==
+Imaginemos un layout de 3 columnas, que ocupa todo el ancho de la ventana del navegador. Las dos laterales tienen un ancho fijo. La central tiene un ancho variable.
+
+El problema viene cuando vamos empequeñeciendo la ventana del navegador. La columna central, de ancho variable, se va estrechando y al final su contenido no es legible. En ningún momento ha aparecido en la parte inferior de la ventana una barra de desplazamiento horizontal.
+
+Bien, pues este truco permite que, el ancho de la columna central sea variable, pero si decrece de un cierto valor, deja de decrecer y aparece la horizontal scrollbar.
+
+Basta con añadir ''min-width: 760px;'' al body. Funciona en Firefox, IE7 y Safari/Chrome.
+
+Para IE6 hay que usar este javascript:
+ if ($.browser.version == '6.0') {
+     $(window).resize(function(){
+         if ($(window).width()<760) $('body').css('width','760px');
+         else $('body').css('width','auto');
+     });
+ }
+
+== Eliminar una columna de una tabla ==
+Me cargo la tercera columna de una tabla de 4:
+ if ($('#colapprover')) {
+     var t = $('#colapprover').parents('table:first'); //closest('table') en jq 1.3
+     var i = 0;
+     $('td', t).each(function (){
+         if (i==3) $(this).remove();
+         i = (i<4) ? i+1 : 0;
+     });
+     $('#colapprover').remove();
+ }
+Hay un plugin para jQuery: http://
+
+== Acceso a la etiqueta de un select ==
+Para hallar el índice seleccionado:
+  JS tradicional:
+ document.getElementById().selectedIndex
+ 
+  jQuery:
+ $('#id_select option[@selected]').val()
+
+Para hallar la etiqueta del option activo:
+  JS tradicional:
+ document.getElementById()[document.getElementById().selectedIndex].innerHTML
+ 
+  jQuery:
+ $('#id_select option[@selected]').text() 
+
+== Cómo saber si un elemento existe ==
+Cuando en el document ready hay que realizar acciones si un elemento está presente en el documento:
+ if ( $('#elemento').length>0 ) {
+ }
+*http://jquery.open2space.com/node/44
+
+== Enviar todos los checkboxes clicados al servidor ==
+onclick="v='[ ';$('input[type=checkbox]:checked').each(function(){v = v + $(this).val() + ',';});v=v.substr(0,v.length-1)+']';$('#vehiculo').val(v);"
+De un modo más claro:
+ v='[ ';
+ $('input[type=checkbox]:checked').each(function() { #selector de checks clicados
+   v = v + $(this).val() + ','; #los concateno
+ });
+ v=v.substr(0,v.length-1)+']'; #cambio último carácter por el cierre de llave
+ $('#vehiculo').val(v); #se guarda en un hidden
+
+En el servidor:
+ json_decode()
+
+== Iteración de colecciones ==
+En JS también tenemos matrices asociativas, pero en realidad son objetos.
+ x={title: "ghgvy", width: 500};
+equivale a
+ a='{title: "ghgvy", width: 500}';
+ x=eval("(" + a + ")");
+cumpliéndose
+ x.title == x['title']
+
+Se iteran mediante un bucle parecido a Python:
+ for (i in coleccion) {
+  c=coleccion[i];
+JS itera las claves, no los valores.
+Equivale a:
+ foreach ($coleccion as $i => $c) {
+
+== Añadir imagen decoración a los LI ==
+A la hora de imprimir, el navegador omite los background, por lo que nuestros LI se quedarán sin decoradores. Añadir el decorador mediante un IMG.
+<pre>
+		<div class="li_2">
+			<?
+			print '<ul><li>Xx</li></ul>';
+			?>
+		</div>
+</pre>
+Con el script...:
+ 	$('div.li_1 > ul > li').prepend('<img src="/imagenes/popups/li_1.gif" alt="" />');
+
+== Esconder direcciones de correo en A ==
+Los ''href="mailto:a@a.com"'' de los A son leídos por spambots. Esconder lo que se ve en una imagen, y para mantener la posibilidad de abrir el cliente de correo al hacer clic, usar jquery.
+<pre>
+<a href="AuserBdomainCtld" rel="correo"><img src="/imagenes/contacto/mail.gif" alt="" /></a>
+</pre>
+Y el script...
+ 	$('a[rel="correo"]').each(function(){
+ 		var dir = $(this).attr('href');
+ 		dir = dir.replace('A','mailto:');
+ 		dir = dir.replace('B','@');
+ 		dir = dir.replace('C','.');
+ 
+ 		$(this).click(function(){
+ 			window.location.href = dir;
+ 			return false;
+ 		});
+ 	});
+
+== Hacer algo al enviar un form ==
+ $(document).ready(function() {
+   $('form').submit(function () {
+     return false; //cancela el envio del form
+   });
+ });
+
+== Mostrar bloque al clicar ==
+Útil para menús en persiana.
+ $(document).ready(function() {
+   $('#soluciones').click(function () {
+     if (!$('#desplegable').is(':visible')) {
+       $('#desplegable').show(); //equivale a css('display', 'block');
+     } else {
+       $('#desplegable').hide(); //equivale a css('display', 'none');
+     }
+   });
+ });
+
+== Cambiar una sección por AJAX ==
+Útil para enviar datos de un form y cambiar un trozo de la página sin recargar todo. Hacemos un evento tal que al clicar en el elemento...:
+  $('#altaboletin').click(function () {
+ 
+ 		//solicitud sin recargar la página
+ 
+    return false;
+  });
+
+La solicitud sin recargar la página puede ser:
+
+       $('#login').load('/login',{
+           nombre: n,
+           clave: c
+           }, null
+       );
+
+o bien:
+
+       $.post('/login',{
+           nombre: n,
+           clave: c
+           }, function(xml) {
+               $('#login').empty().append(xml);
+               //...equivalente a...
+               $('#login').html(xml);
+       });
+
+Esta última es una envoltura de la función más compleja ''ajax''. Ambas insertan el HTML en el DOM de la página actual.
+
+== AJAX y JQuery ==
+Cuando hacemos AJAX, los elementos recuperados por AJAX no son afectados por los eventos JQuery. Si tenemos un select, y éste tiene un
+ $('select').click(alert(''));
+...no funcionará a los añadidos al DOM, presumiblemente porque el JS se parseó al principio y JQuery dispuso sus listeners de eventos ahí.
+
+En ese caso hay que usar los clásicos onclick, onchange, etc... de los elementos.
+
+== Enlaces con acción ==
+No hace nunca...
+ a href="#" onclick="alert('');"
+  ni
+ a href="javascript:alert('');"
+Hacer:
+ a href="javascript://" onclick="alert('');"
+ a href="#" onclick="alert('');return false;"
+*http://lists.evolt.org/archive/Week-of-Mon-20010312/027295.html
+
+== Simulación de _target blank ==
+target es un atributo para XHTML Transitional y Frameset, no para Strict. Si queremos que se abra en una ventana aparte:
+ a href="http://domain.tld" onclick="window.open('http://domain.tld'); return false;"
+En la misma ventana sería...:
+ h1 onclick="window.location='http://domain.tld';"
+Recordar que IE no envía la cabecera HTTP_REFERER en los window.location, solamente en los window.open que vengan de un anchor.
+
+== ShadowBox ==
+Para que el shadowbox funcione correctamente se han de añadir los siquientes archivos en el orden indicado 
+ <script type="text/javascript" src="/recursos/js/jquery-1.2.3.pack.js"></script>
+ <script type="text/javascript" src="/recursos/js/shadowbox-jquery.js"></script>
+ <script type="text/javascript" src="/recursos/js/shadowbox.js"></script>	
+ <link rel="stylesheet" href="/estilos/shadowbox.css" type="text/css" charset="utf-8" />
+y se inicializa
+<pre><script type="text/javascript">
+
+$(document).ready(function(){
+
+    Shadowbox.init();
+
+});
+
+</script></pre> 
+Se copia una imagen de loading, pulsa [http://www.ajaxload.info aquí] para conseguir una o cogela del repositorio, en /imagenes/comunes/loading.gif
+Para que un enlace sea de tipo ShadowBox hay que darle el atributo rel
+ <a href="#" rel="shadowbox">Anchor</a>
+También se puede dar altura y anchura añadiendo width o height
+ <a href="#" rel="shadowbox;width=200;height=200">Anchor</a>

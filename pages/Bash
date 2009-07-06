@@ -1,0 +1,74 @@
+La shell bash y otras utilidades de proceso de cadenas UNIX.
+
+
+Test && _ || _ es como test?_:_ sólo que la 2 se ejecuta si falla la 1º tb
+
+
+ for word in `cat fichero`; do echo "-$word-"; done
+tokeniza las palabras (por espacios)
+
+ cat fichero | while read line; do echo "-$line-"; done
+ while read line; do echo "-$line-"; done < fichero
+
+No puede haber espacios en asignaciones _=_
+
+se recomienda $( en lugar de backticks `. los backticks a veces son difíciles de encontrar en teclados non-US, son fácilmente confundibles con apóstrofes.
+
+ for f in `find /_/_/_ -type f`; do
+  cat del file en grep
+
+Aritmética bash http://www.softpanorama.org/Scripting/Shellorama/arithmetic_expressions.shtml
+
+http://main.rtfiber.com.tw/~changyj/sed/
+
+http://wooledge.org:8000/BashFAQ
+
+variable scope http://www.mydatabasesupport.com/forums/shell/367948-bash-variable-scope.html
+
+== Bytes transferidos ==
+ifconfig en un sistema de 32 bits no puede contar más de 4 GB de datos transferidos. Este programa es llamado cada 10 minutos para llevar la cuenta.
+ #!/bin/bash
+ echo 'bandwidth meter'
+ 
+ #incorporo variables
+ . /root/bwm_data.sh
+ 
+ #el fichero /proc/net/dev contiene la informacion de ifconfig en la quinta linea
+ RX=`head -n 5 /proc/net/dev | tail -n 1 | sed -r 's/^  eth0:([0-9]*) *[0-9]* *[0-9]* *[0-9]* *[0-9]* *[0-9]* *[0-9]* *[0-9]* *([0-9]*).*$/\1/'`
+ TX=`head -n 5 /proc/net/dev | tail -n 1 | sed -r 's/^  eth0:([0-9]*) *[0-9]* *[0-9]* *[0-9]* *[0-9]* *[0-9]* *[0-9]* *[0-9]* *([0-9]*).*$/\2/'`
+ 
+ if [ ${#aRX} -gt ${#RX} ]; then 
+ 	let total=$total+$RX
+ else
+ 	let d=$RX-$aRX
+ 	let total=$total+$d
+ fi
+ 
+ if [ ${#aTX} -gt ${#TX} ]; then
+ 	let total=$total+$TX
+ else
+ 	let d=$TX-$aTX
+ 	let total=$total+$d
+ fi
+ 
+ #escribo variables
+ echo "aRX=$RX" > /root/bwm_data.sh
+ echo "aTX=$TX" >> /root/bwm_data.sh
+ echo "total=$total" >> /root/bwm_data.sh
+ let total=$total/1024/1024
+ echo "Datos transferidos desde ultimo reset: $total MB" > /etc/motd
+
+Anota los resultados en /root/bwm_data.sh
+ aRX=0
+ aTX=0
+ total=0
+
+Ambos ficheros tendrán permiso de ejecución.
+
+== SMTP ==
+== Permisos ==
+En /bin/permisos un script que cambia los permisos a valores normales. Útil despues de copiar archivos desde una unidad FAT32.
+ #!/bin/sh
+ if [ $# = 0 ]; then echo 'please specify directory'; exit 1; fi
+ find $1 -type d -exec chmod 755 {} \;
+ find $1 -type f -exec chmod 644 {} \;

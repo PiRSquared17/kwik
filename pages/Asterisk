@@ -1,0 +1,114 @@
+Asterisk es una implementación libre de una centralita telefónica. Su ámbito preferido de aplicación es como PBX para voz IP.
+
+== Ventajas frente a basura propietaria ==
+Skype, Vonage o SunRocket NO tienen capacidades de centralita. Útil para comunicaciones P2P y ahorrar cuatro duros en las llamadas a fijo/móvil/internacional. Has pagado por tu PBX LG más vieja que la mar, sigues pagando su mantenimiento y encima pagas a este otro proveedor y su correspondiente equipo. ¿Encima te crees que ahorras? OMG!
+Una LG IPK cuesta una pasta gansa. Muchos euros, cerca de 3000.
+
+Frente a todo eso, Asterisk puede funcionar con una tarjeta FXO para hacer de pasarela a la PSTN (red telefónica conmutada pública), también conocida como POTS. O mejor aún puede operar como central puramente digital y que un operador haga el paso a la línea analógica.
+
+Operadores
+Gizmo
+Adiptel
+Carpo
+
+== Ahorro en telefonía ==
+ono y telefónica ofrecen adsl+llamadas
+precios, numeros, rdsi, entrates....
+
+== Protocolos y codecs ==
+*SIP/RTP: esta combinación de protocolos se encargan respectivamente de señalización (inicio de llamada, final, etc..) y de transportar el audio (vídeo incluso). SIP es ASCII y legible por humanos (como HTTP) y usa habitualmente el puerto 5060. Sin embargo, como el audio va por canales separados necesita un puerto para cada flujo (Interlocutor A->B e interlocutor B->A) de sonido. Por tanto se requiere el doble de puertos como comunicaciones abiertas haya más uno (conversaciones*2 RTP + 1 SIP).
+*IAX2: es un protocolo desarrollado por Asterisk, binario. Su ventaja es que agrupa la señalización y el audio en un mismo puerto 4569/UDP. Es más eficiente en BW.
+
+
+*GSM, 13 kbps (kilobits!): calidad pobre, poco consumo de BW
+*G.711 μlaw (ulaw), 64 kbps: mayor calidad de voz a costa del BW. Recordar las leyes de compresión y muestreo (A y mu).
+*iLBC, 13 kbps: implementación del protocolo Skype, alto consumo de CPU
+*G.729, 8 kbps: propietario, muy apto puesto que su bajo BW permite muchas conversaciones simultáneas.
+
+Si estamos detrás de un router (habitualmente será así), y si este es iptables será un NAT tipo Restricted Cone. Recordemos que en traducción de direcciones de red NO podemos recibir una comunicación en ninguno de estos supuestos:
+#no tenemos el puerto (externo) redirigido a un servidor a la escucha (interno), o bien...
+#no forma parte de una respuesta a una petición iniciada por el cliente (interno)
+
+En SIP/RTP hay que redirigir el 5060/TCP y un rango definido UDP a nuestro PBX A*. El rango UDP suele ser 10000-12000, o -20000, dependiendo de cuántas llamadas esperamos recibir.
+En IAX2 hay que redirigir el 4569/UDP.
+
+¿Cómo se comunican los clientes, con su teléfono y su extensión, a la central? Se registran 'contra' ella, lo que puede ser como un logueo. En ese momento el canal está abierto por parte del cliente, así que las comunicaciones del servidor encontrarán el cliente a través del NAT. En un SOHO no lo hay, pero sí sería el caso en el que una extensión se encuentra geográficamente apartada (el jefe en el hotel) sobre la que no puede acceder al router o redirigir puertos.
+
+=== G.729 ===
+La mayor parte de los hardphones utilizan G.729 y G.711. G.711 sólo es adecuado en redes LAN. Asterisk permite usar codecs propietarios en pass-thru, o pagando licencias (para voicemail). Aunque nos las podemos saltar para uso no comercial:
+*http://asterisk.hosting.lv/
+*http://www.readytechnology.co.uk/open/ipp-codecs-g729-g723.1/
+
+== Conversaciones simúltáneas ==
+La capacidad del canal impone un límite a las conversaciones simultáneas.
+
+Dado el consumo en BW de cada códec, y sabiendo que se transmite cada 20 o 30 ms (o lo que es igual, 1 paquete equivale a 20/30 ms de voz), unido al overhead de las siguientes capas OSI (IP/UDP/RTP) y el tipo de red (LAN/WiFi/WiFi cifrada...) tenemos los kbps necesarios para cada flujo (de ida o vuelta) en la conversación. Una conversación es full-duplex: consta de dos flujos simúltáneos de voz.
+*http://www.voip-info.org/wiki-Bandwidth+consumption
+
+
+Casos:
+#LAN: aquí no hay problemas, tenemos entorno a 200 conversaciones simultáneas en una LAN de 100 Mbps
+#WiFi: en WiFi abierto disminuye la capacidad a unas 70, y a 50 con cifrado (dependiendo del códec)
+#ADSL: el caudal es asimétrico. El factor limitante es la tasa de subida, la cual es unas 7 veces menor que la de descarga.
+
+Para un ADSL típico, con 200 kbps de upload (aprox.) tenemos muy poco disponible, calculable por x=200/(bitrate+overhead) .
+
+http://blog.asteriskguide.com/bandcalc/bandcalc.php
+
+
+Consumo de BW de cada codec
+*http://voipex.blogspot.com/2006/05/cuantas-llamadas-simultneas-puedo.html
+*http://www.oreillynet.com/pub/a/etel/2005/12/13/how-many-voice-callers-fit-on-the-head-of-an-access-point.html?page=1
+*http://www.cisco.com/en/US/tech/tk652/tk698/technologies_tech_note09186a0080094ae2.shtml
+
+== Topologías ==
+
+Cómo hago llamadas
+Entre teléfonos (usuarios) registrados en A*: conozco la IP y el prot. de señalización.
+Entre un teléfono externo y uno interno (llamda entrante)
+
+Identificación de llamadas?
+Espera y sonería?
+Canalización para externas?
+Salto entre extensiones ocupadas?
+líneas salientes a PSTN? digital supongo q no hay problema
+
+== Requisitos hardware ==
+Mínimo 300~500 MHz y 128 de RAM
+Recomendado 700 y 256.
+100 MB en HDD suficientes para almacenar las voces y todo.
+Sistemas realmente mínimos http://www.voip-info.org/wiki/view/Asterisk+setup+minimum pero poco usables.
+http://lists.digium.com/pipermail/asterisk-users/2005-August/112372.html
+
+Consume CPU cuando tiene que hacer recodificación (transcoding), si los codecs empleados por los interlocutores son diferentes. Aquí se puede ver el precio del transcoding http://www.voipuser.org/forum_topic_3585.html
+
+Se puede reducir el número de módulos cargados mediante dos técnicas:
+#cargo todos y digo qué módulos no quiero
+#cargo ninguno y digo qué módulos quiero <= MEJOR, conduce a menos ficheros de .conf
+http://www.voip-info.org/wiki/view/Asterisk+Slimming
+
+Sistema ideal:
+http://www.digium.com/en/products/appliance/
+
+Aunque se pueden montar servidores mediante PIV o PIII enrackados, o empotrados como [http://www.voip-info.org/wiki/view/Asterisk+hardware+Soekris Soekris] y EPATec FW3853 y [http://www.pcengines.ch/alix.htm otros].
+
+== SO ==
+Podemos hacer una instalación desde cero, con el SO de nuestra elección (Linux, FreeBSD). También podemos emplear alguna distribución preparada con este fin:
+*http://www.askozia.com/pbx/
+*http://trixbox.com/
+Suelen integrar el admin FreeBPX (anteriormente conocido como AMP, Asterisk Management Portal). Necesita de Apache MySQL y PHP.
+
+=== Custom Debian distro ===
+http://updates.xorcom.com/astribank/
+https://wiki.ubuntu.com/AsteriskOnUbuntu
+
+deb ftp://ftp.es.debian.org/debian stable main contrib non-free
+#deb-src http://security.debian.org/ etch/updates main contrib
+
+deb http://updates.xorcom.com/rapid etch main
+
+
+== Seguridad en SIP ==
+La autentificación de un cliente SIP se hace mediante un hash, como WPA. Si se captura ese hash mediante ''sipdump -f capturaSIP.pcap -d fichdump'' o ''sipdump -i eth0 -d captura.dump'' (en una red con switches usar ARP-poison con ettercap) después se puede aplicar un diccionario para sacar la clave ''sipcrack -w /usr/share/dict/spanish -d captura.dump'' (paquete wspanish).
+
+La suite se puede conseguir de http://www.codito.de/ .

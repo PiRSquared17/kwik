@@ -1,0 +1,46 @@
+Para que haya unos test de formación online hay que prepararlos mediante unas normas.
+
+La tabla formacion debe contener los siguientes campos:
+{| border="1"
+|-
+!campo
+!tipo ó valores
+|-
+|que
+|P , PL , R
+|-
+|curso
+|nombre
+|-
+|pregunta
+|tinyint
+|-
+|enunciado
+|
+|-
+|ok
+|si es correcta
+|-
+|id
+|bigint key autoincrement
+|}
+
+Lo podemos importar desde un XLS. Este XLS sigue una estructura particular:
+* Fila 1: Títulos.
+ Qué	Curso		Cuestión	Enunciado	OK
+* Qué: P , R o PL
+* Curso: nombre común para todas las preguntas del curso
+* Cuestión: número común a la pregunta y a sus posibles respuestas
+* OK: contiene OK en aquella pregunta que sea la correcta
+
+
+Cómo importar datos:
+* Abrir Premiumsoft Navicat.
+* Seleccionar el [[servidores#tconexion|servidor]] de bases de datos.
+* Seleccionar la base de datos c-control
+* Pulsar con el botón derecho sobre la tabla formacion, y luego Import Wizard.
+* Elegir tipo Excel File.
+* Seleccionar el archivo desde \\serverconexion\Ruben\cursos-para web
+* Indicar First Row como 2.
+* Todo Siguiente hasta Execute, que deberá tener marcado 'Append data'.
+* Hecho.

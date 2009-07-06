@@ -1,0 +1,74 @@
+Gracias al Installation Wizard 1.4 (un programa que funciona sólo bajo Windows, no wine) de las cámaras Vivotek, es posible encontrarlas aunque no tengamos la configuración IP adecuada. Es capaz de buscarlas en toda la red cableada, al menos en teoría. ¿Cómo se hace esto?
+*¿Cambiando la IP del equipo a todos los valores de subred posibles y haciendo largos escaneos IP a IP? Tardaría mucho.
+*¿Buscando los 3 primeros dígitos de la MAC, común en todas las Vivotek (0002D1)? Imposible porque en la caché arp sólo hay parejas de MAC-IP con las que ya hemos tenido contacto, y manipular tramas (frames) Ethernet no es algo a lo que pueda llegar un programa (es exclusivo del ámbito de la tarjeta de red).
+*¿Un servicio a la escucha en la propia cámara?
+
+El método que implementa descubre las cámaras de la red mediante el envío de datagramas UDP multicast, a toda la red. Este datagrama no requiere confirmación, simplemente es puesto en la red. Las cámaras activas tienen un servicio que escucha este paquete y responden en consecuencia, informando de su modelo, versión de firmware, dirección MAC y otros parámetros no descifrados.
+
+Una captura de paquetes IP revela el datagrama UDP, muy simple, que se envía. Los detalles relevantes son:
+ 4500 0021 2887 0000 8011 4FBD C0A801DE FFFFFFFF | 087F 2710 000D 0C94 0129000000
+ vhtt oooo dddd      llpp cccc ssssssss dddddddd   rrrr eeee nnnn kkkk aaaaaaaaaa
+ 
+ v paquete IPv4
+ h longitud del encabezado de 5 words
+ t TOS
+ o longitud del paquete 33 bytes
+ d ID
+ l TTL
+ p protocolo UDP
+ c checksum encabezado IP
+ s dirección IP origen
+ d dirección IP destino
+ | comienzo del encabezado UDP
+ r puerto origen
+ e puerto destino, 10000
+ n longitud del datagrama 13 bytes
+ k checksum datagrama UDP
+ a datos, 5 bytes
+
+Comprobamos que las cámaras efectivamente tienen un socket a la escucha:
+ # nmap -sU -p 10000 192.168.1.17
+ ...
+ PORT      STATE         SERVICE
+ 10000/udp open|filtered unknown
+ MAC Address: 00:02:D1:01:CF:30 (Vivotek)
+
+Ahora con un ilustrativo programa en PHP, fácilmente adaptable a otras circunstancias y lenguajes, obtenemos las cámaras de nuestra red.
+ <?
+ 
+ $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+ socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
+ 
+ if ($socket < 0)
+  die('error'.socket_strerror($socket)."en socket_create()\n");
+ 
+ $entrada = chr(1).chr(41).chr(0).chr(0).chr(0);
+ 
+ socket_sendto($socket, $entrada, strlen($entrada), 0, '255.255.255.255', 10000);
+ echo "probando... pulsar CTRL-C para salir\n";
+ 
+ while (1){
+  socket_recvfrom($socket, $salida, 65535, 0, $ip, $puerto);
+  echo "$salida -->DESDE $ip:$puerto\n";
+ }
+ 
+ ?> 
+
+Ejecutamos con 'php -f vtk.php' . Resultado:
+ �)��PT31x2-VVTK-0203c�����������c����Z��en     �PT31x2� -->DESDE 192.168.2.99:10000
+ �)��IP7135-VVTK-0101b������0����������P��en     �IP7135� -->DESDE 192.168.1.17:10000
+Se recibe cada datagrama de respuesta 4 veces por cámara. Analizamos esto:
+ �)��IP7135-VVTK-0101b������0����������P��en     �IP7135� -->DESDE 192.168.1.17:10000
+     mmmmmm nnnn fffff aaaaaa             ll
+ m modelo
+ n fabricante
+ f versión firmware
+ a dirección MAC 00-02-D1-01-CF-30
+ l lenguaje
+
+Se puede usar este método como idea para implementar un servicio (en C o incluso en Bash bajo inetd) que devuelva una cadena de información tipo 'uname -a' y así nos descubra los equipos o routers que hemos instalado en una red y se nos haya olvidado su IP.
+
+Referencias:
+*http://www.arrakis.es/%7Edmrq/beej/clientserver.html#datagram
+*UDP, no spawning servers http://www.chuidiang.com/clinux/sockets/udp/udp.php
+*recordatorio OSI: Transporte-datagramas Red-paquetes Enlace-tramas

@@ -1,0 +1,34 @@
+Vamos a experimentar cifrando datos. Podemos cifrar una partición, o la swap, o un archivo que contiene un filesystem (loop).
+
+Tenemos tres métodos, dependiendo del módulo del kernel que necesita cargarse:
+#cryptoloop
+#loop-aes
+#dm-crypt: el más seguro, integrado en las series 2.6.x del kernel y viene con Ubuntu. Permite cifrar particiones y que se monten en el arranque.
+
+Previamente, apt-get install cryptsetup .
+
+Como no quiero dedicar una partición exclusiva, usaré un archivo como contenedor.
+
+ $ dd if=/dev/urandom of=diom bs=1k count=1048576
+ # losetup /dev/loop0 diom
+ # cryptsetup create vol /dev/loop0
+ # mkfs.ext2 /dev/mapper/vol
+ # mount /dev/mapper/vol /mnt
+
+Ahora supongamos que acabo de encender el equipo y quiero acceder a estos datos:
+ # cryptsetup create vol /dev/loop0
+En este momento se vincula la clave con la partición. Si la clave fuera incorrecta, los datos no se interpretarían.
+ # mount /dev/mapper/vol /mnt
+
+Deshacemos el montaje.
+ # umount /mnt
+ # cryptsetup remove vol
+ # losetup -d /dev/loop0
+
+Curiosamente, este mismo fichero puede montarse o desmontarse mediante cryptoloop:
+ # losetup -e aes /dev/loop0 diom
+ # mount /dev/loop0 /mnt
+ # umount /mnt
+ # losetup -d /dev/loop0
+
+Podría crearse un programa que, leyendo la BIOS u otro parámetro sacara un código único para el equipo. Y que este código fuera la clave de cifrado de la partición. Por consiguiente, el equipo no montaría la partición si se cambia el disco duro a otra placa.

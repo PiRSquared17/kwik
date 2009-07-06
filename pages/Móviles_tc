@@ -1,0 +1,33 @@
+== Liberar Nokia ==
+# Quitar tarjeta
+# Encender terminal
+# Cuando pida PIN, pasar de ello.
+# Escribir *#06# para saber el IMEI (International Mobile Equipment Identifyer)
+# Entrar en la web de favoritos que calcula códigos de liberación. Meter IMEI, modelo de terminal y país en el formulario.
+# Escribir el código #pw+............ p , w y + se obtienen pulsando * varias veces.
+
+
+== Resetear un 6600 ==
+Para borrar todos los programas instalados junto con todos los datos y dejar el dispositivo como vino de fabrica hay que teclear el código *#7370#. Es muy recomendable que la batería esté al máximo de carga y si es posible conectado al cargador, ya que una interrupción durante el proceso podría dejarlo inservible.
+Una vez introducido el código *#7370# se nos preguntará ¿Restablecer todos los ajustes originales del teléfono? El teléfono se reiniciará. a lo que se debe contestar Sí. Luego se nos pedirá el Código de bloqueo, si este no se ha cambiado nunca es 12345, si no el que pusieramos en su día.
+Si tu modelo tiene tarjeta de memoria externa (3650, 6600 o SX1), primero se deberá formatear la tarjeta de memoria, ya que de otra manera y en función de los programas instalados podría fallar el siguiente arranque del sistema.
+* http://www.todosymbian.com/modules.php?name=FAQ&myfaq=yes&id_cat=1&categories=v6.1+Series+60#1
+
+
+== Teclas Amena ==
+* ##002#	desactiva desvío
+* #31#		prefijo de llamada oculta
+
+
+== Configuración del GPRS en XDA II ==
+* Nombre: AMENAGPRS
+* Punto de acceso: internet
+* Enlace: Celular GPRS
+* usuario: CLIENTE
+* clave: AMENA
+* IP y DNS automáticas
+
+* 470 si es particular. por lo general si tiene...
+** número en la tarjeta: postpago
+** sin número: prepago
+* 471 si es empresa

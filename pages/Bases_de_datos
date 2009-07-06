@@ -1,0 +1,16 @@
+tipos
+
+
+enlace a [[sqlite]]
+
+
+== Problemas codificación MySQL ==
+Si la BBDD es latin1 (iso-8859-1) yo debo editar en el mismo charset. Recordar que windows usa el cp-1512 .
+php.ini-> default_charset="iso-8859-1"
+my.cnf-> default-character-set=utf8
+
+Se puede ver la configuración actual con SHOW VARIABLES;
+Y alternativamente se pueden pedir datos en una codificación concreta con SET NAMES 'utf8'; justo despues de conectar a la BBDD.
+
+== Convertir Access a MySQL ==
+Con mdbtools y dbf2mysql

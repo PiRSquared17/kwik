@@ -1,0 +1,45 @@
+Separar la aplicación en capas permite, a las aplicaciones grandes, ganar en claridad. Por tanto, se simplifica su mantenimiento. El que haya capas separadas posibilita además el intercambio o desacople de éstas.
+
+== wxPython ==
+En aplicaciones de escritorio no acabo de ver claro el beneficio de la separación entre V-C. Sin embargo, separar el M sí es ventajoso de cara a cambiar modelos de datos o motores de BBDD.
+
+Desde mi punto de vista, me interesa pues las apps pueden acceder a un servicio web, un fichero sqlite o un servidor mysql en la red local; cambiando muy poco código en un sólo lugar.
+
+Las BBDD en Python se leen mediante un cursor situado en el primer elemento del SELECT. Los elementos se leen iterando uno a uno el cursor, devolviendo una tupla por fila leída (for r in c). Puede emplearse un método de lectura a una variable de la primera fila, sin iterar (r=c.fetchone()). O también puede leerse una lista con todas las tuplas a una variable (r=c.fetchall()), ocupando más memoria en un momento dado (esta memoria la libera el recolector de basura poco después).
+
+Hay fetches que devuelven algo siempre, pues apuntan a un elemento existente. fetchone nos devuelve un (72,) y fetchall [(72,)] . Si no encuentran nada, fetchone no devuelve (r no existe) y fetchall devuelve [] .
+
+Para consultas que devuelven un sólo elemento, si se recuperó con fetchone accedemos a él con r[0] (es distinto de r) y con fetchall con r[0][0] .
+
+Cuadro resumen:
+{|border="1"
+!
+!r=c.fetchone()
+!r=c.fetchall()
+!iterando cursor for r in c:
+|-
+|consulta devuelve un campo de una fila
+|(None,) pero r[0] no es r
+|[(None,)] el resultado es r[0][0]
+|no tiene sentido, pero igual que fetchone
+|-
+|consulta devuelve varios campos de una fila
+|(11,12)
+|[(11,12)]
+|no tiene sentido, pero igual que fetchone
+|-
+|consulta de varias filas y varios campos
+|(11,12)
+|[(11,12),(21,22)]
+|primero (11,12) despues (21,22)
+|}
+
+Creo una clase "abstracta" que será heredada por mis consultas. Para el programa de facturas, esto es un módulo facturas_modelo.py que contiene una clase MisDatos que hereda de db.Datos . MisDatos contiene unos métodos los cuales reciben un diccionario v con los parámetros de la consulta, realiza la consulta SQL y devuelve una tupla de diccionarios con el resultado. Ej:
+ modelo=facturas_modelos.MisDatos('local')
+ r=modelo.consulta('CamposFactura', {'id':id} )[0] #consulta que devuelve una única fila
+ print r['nombre']
+ r=modelo.consulta('ListaEmpresas', None ) #consulta de varias filas
+ for x in r:
+   print r['nombre']
+
+Gracias a db.py, podríamos poner los dos ficheros (db.py y facturas_modelo.py) en un servidor web y sin más que cambiar 'local' por 'web' todo el código anterior seguiría siendo válido, con idéntico resultado. Para el programador se reduce a pensar de dónde vienen sus datos (web o local), qué método pido y qué valores le paso. El formato del resultado se consulta con __doc__ sobre el método, y los métodos disponibles con dir().

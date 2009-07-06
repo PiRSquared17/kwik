@@ -1,0 +1,166 @@
+== Cómo se instala ==
+Preparo un Soekris net4501 con FreeBSD (vale también un PC con tres tarjetas de red Realtek 8139, cambiando sisN por rlN). Instalación mínima, unos 150 o 360 megas (depende si se instalan man pages). Una única partición /, sin swap. Desactivar todas las consolas, dejando sólo una por puerto serie. Habilitar ssh para root. Instalar wget, bash y nano.
+
+Editar rc.conf :
+ gateway_enable="YES"
+ hostname="router"
+ ifconfig_sis0="inet 192.168.1.1 netmask 0xffffff00"
+ ifconfig_sis1="inet 172.16.1.2 netmask 0xffffff00"
+ ifconfig_sis2="inet 172.16.2.2 netmask 0xffffff00"
+ keymap="spanish.iso.acc"
+ sshd_enable="YES"
+ usbd_enable="NO"
+ sendmail_enable="NONE"
+ 
+ ipfilter_enable="YES"
+ ipnat_enable="YES"
+ ipmon_enable="YES"
+ ipfs_enable="YES"
+
+Añadir al path . y /root
+
+Fijar en /etc/crontab la nueva tarea, el path a /root y MAILTO="" :
+ */1 * * * * root conectividad
+
+Crear los comandos siguientes en /root y marcarles ejecutables +x :
+*aplicar
+ ipnat -C
+ ipnat -f /etc/ipnat.rules
+ cambiar-gw --force
+*cambiar-gw
+ #!/usr/local/bin/bash
+ 
+ #cambio la puerta de enlace
+ #y el firewall
+ #respecto a lo que se estaba usando, lo cual no funcionaba
+ #llamar sin comandos para cambiar el gateway
+ #llamar con --force (o cualquier cosa) para usar el primero, sis1
+ 
+ interfaz_antiguo=sis1
+ interfaz_nuevo=sis1
+ gateway=172.16.1.1
+ 
+ grep sis1 /etc/firewall
+ if [ $? -eq 0 ] && [ $# -eq 0 ] ; then
+        interfaz_nuevo=sis2
+        gateway=172.16.2.1
+ fi
+ 
+ sed "s/$interfaz_antiguo/$interfaz_nuevo/" /etc/ipnat.rules > /etc/firewall
+ ipnat -C
+ ipnat -f /etc/firewall
+ 
+ route flush
+ route add default $gateway
+*las redirecciones de puertos del router /etc/ipnat.rules
+ map srdr sis1 0/0 port 80 -> 192.168.1.50 port 80 tcp
+ rdr sis1 0/0 port 90 -> 192.168.1.99 port 80 tcp
+ rdr sis1 0/0 port 2000 -> 192.168.1.200 port 3389 tcp
+ rdr sis1 0/0 port 2001 -> 192.168.1.201 port 3389 tcp
+ rdr sis1 0/0 port 2550 -> 192.168.1.51 port 2550 tcp
+ rdr sis1 0/0 port 2551 -> 192.168.1.51 port 2551 tcp
+ rdr sis1 0/0 port 2552 -> 192.168.1.51 port 2552 tcp
+ rdr sis1 0/0 port 2553 -> 192.168.1.51 port 2553 tcp
+ rdr sis1 0/0 port 2554 -> 192.168.1.51 port 2554 tcp
+ rdr sis1 0/0 port 2555 -> 192.168.1.51 port 2555 tcp
+ rdr sis1 0/0 port 3389 -> 192.168.1.5 port 3389 tcp
+ rdr sis1 0/0 port 8080 -> 192.168.1.200 port 80 tcp
+ rdr sis1 0/0 port 8234 -> 192.168.1.50 port 8234 tcp
+ rdr sis1 0/0 port 8235 -> 192.168.1.50 port 8235 tcp
+ rdr sis1 0/0 port 19311 -> 192.168.1.160 port 19311 tcp
+ rdr sis1 0/0 port 20311 -> 192.168.1.150 port 20311 udp 
+*conectividad
+ #!/usr/local/bin/bash
+ 
+ no_hay_linea () {
+ 
+  ping -o -t1 -q 80.58.61.250 > /dev/null
+  if [ $? -eq 0 ] ; then return 0; fi;
+ 
+  ping -o -t1 -q 80.24.111.178 > /dev/null
+  if [ $? -eq 0 ] ; then return 0; fi;
+ 
+  ping -o -t1 -q 72.249.20.249 > /dev/null
+  if [ $? -eq 0 ] ; then return 0; fi;
+ 
+  return 1;
+ }
+ 
+ #comprueba que tenga conectividad
+ #si no la hubiera cambia la puerta de enlace
+ #e informa al servidor de IP fija
+ 
+ no_hay_linea
+ if [ $? -eq 1 ] ; then
+         cambiar-gw
+         informa
+         exit
+ fi;
+ 
+ echo 'HAY CONECTIVIDAD'
+*informa
+ #!/usr/local/bin/bash
+ #averiguo mi IP pública y se la casco al servidor remoto
+ 
+ current=$(wget -O - http://checkip.dyndns.org|sed s/[^0-9.]//g)
+ ssh usuario@adslconorange.com "echo $current>ip"
+ ssh usuario@adslconorange.com 'sudo /etc/init.d/firewall.sh'
+
+El script que carga el firewall (/etc/init.d/firewall.sh) en el servidor externo recoje el valor de IP pública y prepara la redirección (NAT) en consecuencia.
+ #!/bin/sh
+ 
+ echo 1 > /proc/sys/net/ipv4/ip_forward
+ iptables -F
+ iptables -X
+ iptables -Z
+ iptables -t nat -F
+ iptables -A INPUT -i lo -j ACCEPT
+ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+ iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 25 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 110 -j ACCEPT
+ 
+ 
+ #esta es la parte que redirige puertos a la receptora
+ 
+ #averiguo la ip
+ receptora=`cat /home/usuario/ip`
+ 
+ #establezco los saltos
+ iptables -A INPUT -p udp --dport 20311 -j ACCEPT
+ iptables -A PREROUTING -t nat -p udp -d 72.249.20.249 --dport 20311 -j DNAT --to-destination $receptora:20311
+ iptables -A POSTROUTING -t nat -p udp -d $receptora  -j SNAT --to 72.249.20.249
+ 
+ iptables -A INPUT -p tcp --dport 19311 -j ACCEPT
+ iptables -A PREROUTING -t nat -p tcp -d 72.249.20.249 --dport 19311 -j DNAT --to-destination $receptora:19311
+ iptables -A POSTROUTING -t nat -p tcp -d $receptora -j SNAT --to 72.249.20.249
+ 
+ iptables -P INPUT DROP
+
+== Cómo funciona ==
+Tiene conectados a eth0 la red interna (192.168.1.1), a eth1 el router de Telefónica (172.16.1.1) y a eth2 el de ONO (172.16.2.1). Estos routers fijan una DMZ al soekris, 172.16.x.2. Idealmente para que los clientes no hagan doble NAT, los routers deberían estar en RFC1481 Bridged, pero no se ha podido, así que están Routed y los routers se conectan a cada boca del soekris 172.16.1.2 y 172.16.2.2 .
+
+Cada minuto el script ''conectividad'' comprueba que el equipo sale a internet.
+
+Comprobada la pérdida de enlace, cambia la puerta de enlace llamando a ''cambiar-gw'' y después informa de este cambio al servidor de IP fija externo, mediante ''informa''.
+
+Todo este proceso tiene un tiempo medio de respuesta de 30 segundos, desde la pérdida de conectividad hasta que sea detectada. En el peor de los casos este tiempo es de 60 segundos y en el mejor, inmediato.
+
+== Cómo se usa ==
+Entrar por ssh al equipo, con usuario root.
+
+=== Modificar la redirección de puertos ===
+Editar /etc/ipnat.rules .
+Aplicar con ''aplicar'' .
+=== Forzar un cambio de puerta de enlace ===
+Ejecutando manualmente ''cambiar-gw'' . Informar a Dallas de nuestro cambio.
+=== Averiguar qué router estamos usando ===
+Con netstat -r , el default.
+
+== Otra posibilidad ==
+Con dos ADSL en la misma red, como es el caso, se podrían usar simultáneamente (a costa de perder esta redundancia). Para paquetes salientes, un proxy repartiría la carga:
+ ip route add default scope global nexthop via 10.0.0.1 dev eth0 weight 1
+ ip route add default scope global nexthop via 10.0.0.2 dev eth1 weight 1
+Para conexiones entrantes, nuestro proveedor DNS debe tener un algoritmo round-robin que adjudique una IP externa u otra. A veces es tan simple como poner dos entradas tipo A: mismo nombre y dos IP distintas.

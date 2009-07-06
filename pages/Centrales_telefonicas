@@ -1,0 +1,30 @@
+Las centrales telefónicas convencionales operan sobre RTB y/o RDSI. Se describen mediante a/b/c/d siendo:
+*a: líneas RTB
+*b: líneas RDSI
+*c: extensiones analógicas
+*d: extensiones digitales
+
+Cada línea RTB soporta una conversación y un ADSL.
+Cada línea RDSI (ISDN, STIB, T0/S0, acceso básico) soporta 2 conversaciones, o una conversación y un ADSLsobreRDSI. Un acceso primario soporta más.
+
+Pasar de RTB a RDSI no siempre conlleva la pérdida del número: portabilidad posible.
+
+Las líneas son agrupables dentro de una misma tecnología. Se pueden contratar varias líneas RTB (cada una con su número de teléfono) pero que sea público sólo un número (cabecera). En caso de estar en uso, se emplea otra línea del grupo (salto). Sucede igual para RDSI, pero no entre RTB y RDSI.
+
+El bono de llamadas que acompaña a los ADSL RTB incluye llamadas de fax. Suele emplearse la línea con bono como primera línea de salida.
+
+El fax puede estar detrás de la central o en una línea dedicada, si se tiene pensado recibir/enviar muchos, liberando la línea a la central para llamadas de voz.
+
+Suelen aprovecharse los 4 hilos sobrantes de un cableado 100baseT para tener 2 extensiones analógicas o una digital.
+
+== Caso práctico ==
+Una sede, con 14 extensiones. Dimensionada para 8 llamadas de voz simultáneas. Disponen de un ADSL. Central 2/4/10/4.
+Gasto (excluyendo el ADSL y su línea).
+*Telefónica cobra 33,6 por cada RDSI y 13 por cada RTB.
+ 33,6 * 2 + 13 * 3 = 118 € (y una de las llamadas será gratis)
+*Con ONO no hay RDSI, pero una línea son 28.
+ 28 * 7 = 196 € (incluye llamadas)
+Las llamadas a móviles son 0,25 en ONO y 0,15 en Telefónica.
+
+Comparando con central IP. El ADSL ya se está pagando. QoS priorizando la voz. Un ADSL normal posibilita unas 6 llamadas a la vez con el códec G.729 (24 kpbs con el codec 8kbps).
+La velocidad de subida en el ADSL es el factor limitante. Podemos ver tests en una región mediante www.speedtest.net .

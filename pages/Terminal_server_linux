@@ -1,0 +1,35 @@
+Para usar Eurowin desde Linux se entra por terminal server.
+
+== Configuración de impresora ==
+Las impresoras de tickets son de tipo crudo (raw), e imprimen sólo caracteres ASCII. No aceptan órdenes Post Script.
+
+En CUPS se pueden configurar vía interface Web (el usuario root debe tener establecida una contraseña). El puerto puede ser:
+*LPT #1
+*Serial Port #1
+Elegir como modelo Raw. Esto evita todo procesamiento de los datos recibidos. Tampoco se emplea un PPD; este fichero, recordemos, dice a CUPS qué filtro/driver usar para convertir el PS al formato que necesita la impresora.
+
+Otro modo es añadir la impresora en línea de comandos:
+ # lpadmin -p Tickets -E -vparallel:/dev/lp0
+
+El resultado será tener una impresora llamada Tickets.
+
+*http://distro.ibiblio.org/pub/linux/distributions/smeserver/contribs/rvandenaker/beta/e-smith-cups/documentation/howtos/cups-add-printer.html
+*http://www.novell.com/documentation/suse91/suselinux-adminguide/html/ch05s05.html
+
+== Usuario del servidor ==
+El serverconexion2 tiene activado Servicios de Terminal Server, que permite que los usuarios del sistema inicien sesión cuantas veces quieran. Sin este servicio las conexiones RDP estarían limitadas a 2 por usuario.
+
+Se emplea un único usuario por punto de venta. Cuando se usan usuarios diferentes no hay problema, pero con un usuario único sucede que cuando uno se desconecta, si antes de que se produzca el cierre de sesión se conecta otro, recuperaría su sesión, siendo perjudicial por que tiene la caja y el operario de Eurowin fijados. Se puede intentar paliar conflictos editando propiedades del usuario:
+
+El tiempo de la sesión activa (desde que abrimos TS por primera vez) lo establecemos como infinito. En el momento que se cierra la ventana de TS, la sesión pasa a Desconectada o inactiva. Desgraciadamente, debido al alto uso del servidor, se van a producir reconexiones por parte de otros usuarios, con lo cual cada tienda debe tener su usuario.
+[[Imagen: Term-s.png]]
+
+== Conexión al servidor ==
+Se emplea el programa rdesktop, que implementa el protocolo RDP 5, necesario para publicar la impresora en el servidor.
+ $ rdesktop -a 8 -z -g 1024x768 -u tienda -p pdv -r printer:Tickets="Generic / Text Only" 192.168.1.2
+Esto hace conectarse con una profundidad de color de 8 bits, habilitada compresión, la resolución de pantalla y el usuario especificado.
+
+Pedimos que use la impresora Tickets. Si se pusiera -r printer:Tickets , publicaría la impresora con un driver PS (el de la HP 8500). De este modo, forzamos a usar un driver sólo texto, que sí existe en el servidor.
+
+== Impresora en el Eurowin ==
+Finalmente se configura la impresora en el Eurowin desde el TPV -> menú Archivo -> Cajas de venta .

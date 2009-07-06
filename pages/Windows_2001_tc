@@ -1,0 +1,52 @@
+Un clon de Windows, basado en Ubuntu Feisty, ligero y con las funcionalidades justas.
+
+Puntos clave:
+*aspecto consistente
+*rápido
+*administración remota
+*fiable
+
+Instalar Feisty Fawn mínimo y añadir los paquetes:
+ x-window-system-core
+ xkbutils
+ xkboard-config ?¿
+ wine
+ icewm
+ kdesktop
+ konqueror
+ mozilla-firefox
+ mozilla-thunderbird
+ msttcorefonts
+ psi
+ java
+ cupsys
+ openssh-server
+ ies4linux
+ iptables
+ squid
+ karchiver
+ kde-i18n-es
+ openoffice-i10-es
+
+== Ice Window Manager ==
+Los archivos de configuración de icewm son:
+ /usr/share/icewm
+ /etc/X11/icewm
+ ~/.icewm
+La piel será theme-winclassic. Añadir el parche para iconos sin borde. Modificar en kcontrol iconos, color de escritorio, ratón...
+
+== Tipo de letra ==
+Añadir la Tahoma. Cambiar la letra en kconfigure.
+En Firefox y el correo, cambiarla añadiendo un archivo ~/.mozilla-*/chrome/userChrome.css que contenga:
+ * {
+  font-family: tahoma;
+  font-size: 11px;
+ }
+
+OOorg no incorpora exactamente el mismo tipo de letra, y no lo podemos cambiar tampoco con facilidad. Además, hay cierto problemas con los widgets y es necesario retocar los archivos XML de configuración ~/.openoffice.org2/user/registry/data/org/openoffice/Office/*xcu . Los documentos recientes están en Common.xcu , de tal modo que podremos borrarlos.
+
+== Iconos ==
+Descargar el set kde3-xp y meterlos en /usr/share/icons/kde-xp .
+Crear un enlace en el escritorio al kioslave trash:/ y ajustar EmptyIcon=trashicon_empty
+== Color ==
+El color de fondo será #3a6ea5

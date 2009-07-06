@@ -1,0 +1,31 @@
+El ADSL de Telefónica y todos sus revendedores tiene una garantía de caudal del 10% y disponibiidad.... sujeta a cortes.
+
+Muchas veces se contrata un servicio punto a punto o fibra de Telefónica (u otro proveedor) sólo con el fin de tener una alta disponibilidad de la conexión. No es tanto el gran caudal que se consigue sino su uptime, de tal modo que servicios esenciales no dejen de funcionar nunca. Telefónica maneja estos precios:
+*punto a punto: conexión mediante pares de cobre desde un router en nuestra sede, en régimen de alquiler, hasta la central telefónica. El tiempo de implantación puede ser de un mes, y el coste de unos 1600 euros mensuales. Los cambios en el router (redirección de puertos) son efectuados por Telefónica. El caudal es de 1 MB simétrico. Varias IP.
+*fibra: fibra de vidrio desde la sede hasta la central. Los equipos son propiedad de telefónica, proporcionando a la salida del transceptor un RJ45. Caudal escalable hasta 6 MB simétricos. Varias IP. Coste desde 1400 euros hasta 3000.
+
+Estos sistemas adolecen una inflexibilidad manifiesta, por cuanto el cliente debe solicitar una redirección de un puerto al operador.
+
+Por tanto, vamos a emplear un hosting dedicado, o un hosting virtual como los que ofrece [http://rimuhosting.com Rimuhosting] para que mediante un [http://localhost/www/wikidpto/index.php/Alta_disponibilidad firewall y unos scripts], tengamos una IP de alta disponibilidad a un precio muy bajo.
+
+ 18 € hosting
+ 35 € adsl
+ 40 € ono
+  1 € dyndns (pago anual)
+ ----
+ 84 € mes
+
+Configuramos un ''bouncer'' en el servidor de alta disponibilidad, que rebota los paquetes a nuestra IP activa:
+*con Linux/iptables
+ echo 1 > /proc/sys/net/ipv4/ip_forward
+    # he de permitir el paso de entrada, lo primero
+ iptables -A INPUT -p tcp --dport 20300 -j ACCEPT
+    # encamino los paquetes entrantes a la nueva dir, a otro puerto
+ iptables -A PREROUTING -t nat -p tcp -d 72.249.20.249 --dport 20300 -j DNAT --to-destination 88.2.173.8:20300
+    # encamino las respuestas de vuelta
+ iptables -A POSTROUTING -t nat -p tcp -d 88.2.173.8  -j SNAT --to 72.249.20.249
+
+*con OpenBSD/pf
+ rdr on ifaceext0 proto tcp from any to 72.249.20.249 port 80 -> 88.2.173.8
+ nat on ifaceext0 from any to 88.2.173.8 -> 72.249.20.249
+*http://www.bsdforums.org/forums/showthread.php?t=49118

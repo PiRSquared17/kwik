@@ -1,0 +1,8 @@
+Vamos a convertir los PDF a imágenes para poder editarlos. Hay que instalar el paquete netpbm. Generamos una imagen por página:
+ $ pdftoppm * PREFIJO
+ $ for i in `ls`; do ppmtobmp $i > "$i.bmp"; done;
+
+Despues de editar las imágenes se imprimen a un archivo PDF (o PS y se convierte con ps2pdf). Los PDF resultantes se concatenan así:
+ $ gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=out.pdf in1.pdf in2.pdf in3.pdf
+
+*http://ansuz.sooke.bc.ca/software/pdf-append.php

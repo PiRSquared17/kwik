@@ -1,0 +1,218 @@
+Guía de estilo http://www.python.org/dev/peps/pep-0008/
+
+== Particularidades ==
+Algunas peculiaridades de este lenguaje de script:
+*en las funciones utiliza variables locales, a no ser que encuentre una global con ese nombre. Se fuerza el uso de globales con ''global''. A diferencia del estilo de PHP, se pueden leer globales (pero no escribirlas) sin declarar global.
+*dos bucles: for y while. for es realmente un foreach, ya que todo son colecciones (arrays asociativos).
+*si algo se inicializó como cadena, no puede usarse como número sin antes convertirse. Las funciones de conversión son int() y str()
+*no soporta ++i ni i++, aunque sí i+=1
+
+
+Más info en:
+*http://docs.python.org/tut/node9.html
+*http://merd.sourceforge.net/pixel/language-study/syntax-across-languages-per-language/Python.html
+*http://www.pygtk.org/docs/pygtk/gtk-class-reference.html
+*http://mail.python.org/pipermail/tutor/2002-September/017368.html
+*http://uselesspython.com/BatteriesIncluded.html
+
+Es multiplataforma, y puede emplearse un [http://aruiz.typepad.com/siliconisland/2006/12/allinone_win32_.html instalador para Windows] de tal modo que pueden hacerse perfectas aplicaciones multiplataforma. Mucho mejor que Mono/GTK#, .Net no es más que un intento de M$ de producir aplicaciones seguras, toda vez que les resulta imposible producir un sistema operativo seguro.
+
+una clase: entre paréntesis, herencia. Paso de parámetros, en el constructor __init__ (rigurosamente no es el constructor, pero como si lo fuera)
+
+type() devuelve el tipo de objeto (string, etc..)
+
+introspection, algo muy útil de python para saber el contenido de clases, etc...
+__doc__ : cadena de documentación de una clase o método
+dir(): propiedades y métodos del objeto indicado
+
+*http://docs.python.org/lib/inspect-types.html
+*http://www.ibm.com/developerworks/library/l-pyint.html
+*http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52315
+
+tiene aritmética de complejos integrada.
+
+objetos pasados se modifican, no se copian como sucede con el paso de variables (objetos son referencias!!)
+
+es posible reasignar una variable y que cambie el tipo. sin embargo chequea los tipos en comparaciones.
+
+this no es una palabra reservada de "esta instancia de la clase". esta instancia de la clase se pasa en el primer argumento de los métodos por referencia. se emplea con convenio la variable self.
+
+un nombre de variable se considera local en asignaciones. si coincide con uno global, hay que usar la palabra clave global para indicar que las asiganciones con esa variable se refieren a la global y no a una local
+
+Los [http://docs.python.org/tut/node7.html#SECTION007500000000000000000 arrays] reciben nombres distintos. Todos son dinámicos.
+*tupla () y lista []: arrays o matrices habituales. La diferencia entre ambas es que las tuplas son inmutables (no puede variarse su contenido). Las listas tienen métodos asociados como append, remove, index . Importante: una tupla de un elemento es ('kk',) y una lista de un elemento es ['kk']. Una tupla declarada como ('kk') en realidad es un string!!
+*diccionario {}: array asociativo. Estáticamente con {'kk': 1, 'k2': 2}. Dinámicamente se crean/modifican elementos mediante dict['kk']=1
+
+len(a) devuelve el número de elementos a
+type(a) devuelve el tipo de a
+
+Las cadenas (strings) son listas, e incorporan funciones propias de las listas. Dada una cadena ''s'' ...:
+ [1:5] del carácter 1 al 5
+ [:-1] quita un carácter del final
+ s.find(x) índice de la primera aparición de cadena x dentro de s, -1 si no lo encuentra
+ s.index(x) igual que find, pero lanza un error si no encuentra x
+
+Ficheros. Igualmente aplicable a cualquier otro flujo como páginas web recuperadas por urllib.
+ f=open('filepath','r') abre filepath para lectura, w escritura
+ f.read() lee todo el fichero
+ f.readline() lee una sóla línea y mueve el puntero de lectura
+ f.write(s) escribe la cadena al fichero, no inserta '\n'
+ 
+ 
+
+Una biblioteca para acceso al puerto serie desde python: http://pyserial.wiki.sourceforge.net/pySerial
+
+cositas de wx widgets.....
+
+== Web ==
+*instanciar clase por nombre http://mail.python.org/pipermail/python-list/2002-December/176427.html
+*importar paquetes por nombre
+ imp = 'import a.b.c'
+ exec imp
+*GoF en Python http://www.suttoncourtenay.org.uk/duncan/accu/pythonpatterns.html#command-dispatch-pattern
+
+
+== Evaluación de posibilidades multiplataforma ==
+La meta es encontrar, entre todos existentes, la mejor tecnología o combinación de ellas que permita aplicaciones multiplataforma (Windows, Mac, Linux, Solaris, BeOS, móviles, ...).
+No es una tarea sencilla, por cuanto no existe una solución plenamente satisfactoria en todos los campos.
+
+
+web sucks
+poco flexible, un atraso, exige reenviar la interfaz constantemente
+IE para WinCE no soporta ajax!!! argg!!
+
+
+javaWS no permite acceder al filesystem!!
+java2me distinto de java2se swing: es encesario reescribir la aplicación
+
+java es lento en el inicio y consume mucha memoria. pese a que puede producir código muy rápido, en aplicaciones gráficas no se no ta tanto. tiene tres toolkits gráficos: AWT, Swing y SWT. AWT es el más ampliamente soportado, pero sólo se usa en móviles y en applets. Swing es el toolkit por defecto, lo usa Netbeans. Ambos son bastante lentos: es Java quien hace el dibujo de los widgets, y por tanto no tienen aspecto nativo. SWT sí lo tiene pues utiliza una técnica similar a wxWidgets: llama al toolkit nativo a través de JNI, y si algún control no está disponible (como toolbars en Motif), lo pinta. Para una discusión entre ambos: http://www.developer.com/java/other/print.php/10936_2179061_1 .
+
+my pyweb start (no confundir con Eggs)
+python se ejecuta desde local.
+se descarga si es nuevo y user autorizado, y del server principal si es auth tb
+loguea
+accede a REST por SSL o digest ( http://java.sun.com/developer/technicalArticles/J2EE/usingapikeys/ )
+tener webservices aligera el server y dota de movilidad a la aplicación. se descarga por cuanto no se usa ni TS ni web ni mierda!!
+además la app es más rica visualmente con L&F nativo
+java no tiene L&F nativo satisfactorio. consume mucha memoria de inicio.
+
+divide la app en ficheros, por tanto sólo descarga los necesarios y no toda la app como javaWS (micronav sucks!!)
+
+¿Es necesario?
+Quiero decir, que en 2007, los equipos personales son cada vez más poderosos.
+No estamos hablando de 1980 y el timesharing: el abismo que había entre un mainframe servidor y el ordenador que podría haber en la oficina o en el hogar (máquinas de 8 bits!) es muy diferente a la situación actual.
+Entonces, el conectarse remotamente a un ordenador más potente con un módem tenía sus ventajas: era lógico que si el equipo que tenemos era lento te conectases a otro con mejores tiempos de proceso.
+
+A lo que voy, por si no queda claro, es que parece contradictorio que con los equipos de sobremesa actuales cada vez más potentes, se está tendiendo a externalizar el tiempo de CPU y a usar estos equipos como meros "dumb terminals". ¿no es paradójico? Creo que se debería aprovechar las capacidades que ofrecen los equipos actuales, repartiendo la carga o uso de CPU más entre el servidor y el cliente, sin dedicar al cliente únicamente la tarea de visualización.
+
+Me parece que se debería romper la tendencia a pensar que el servidor es un equipo todopoderoso que carga con el peso del cálculo, sino considerar que un servidor no sea más que un equipo que realiza tareas de servidor. No por tener un terabyte de RAM es un servidor, sino un equipo debe ser un servidor por realizar tareas centralizadoras, de coordinación, de servidor en definitiva; siendo los requerimientos hardware extras una consecuencia de la tarea a desempeñar.
+
+Cómo pasarle tareas al servidor? dedicándole a servir, a tener centralizada la BBDD, y accedder a ella mediante:
+-carpeta compartida
+-socket mysql
+-web services inspirados en REST
+
+serie pí de programas (de python)
+PIfacturación
+PIcontabilidad
+
+
+=== Uso recomendado de lenguajes ===
+C - kernel, drivers, fast code
+PHP - web, complex system scripts (acceden a BBDD)
+Bash - simple scripts, cgi
+Python - cgi webservices, gui apps
+
+¡Nunca!:
+Java - too verbose
+Perl - unclear
+C++ - strings are not a class
+.net - ...
+
+== wxWidgets ==
+apple GUI guidelines.
+dutch mac erp
+
+Es el set de ... elegido para programar. Multiplataforma y bien documentado.
+java no es especialmente lento, tarda en cargar la primera vez eso es todo, pero desgraciadamente ocupa bastante memoria. Este elevado consumo de RAM hará el sistema en general más lento por el contínuo acceso a swap si abrimos varias aplicaciones a la vez. Es de suponer que así suceda, ya que en un entorno típico suelen estar simultáneamente cargados el ERP, la suite ofimática y el MUA.
+tk
+.net/mono & winforms/gtk# suck suck! muy pesado
+java swing (awt sucks!) swing too
+gtk es C y emula objetos (callbacks, widgets), un lenguaje no-OOP no es lo más adecuado para GUI
+qt4+pyqt me requiere instalar las qt en gnome... es la unica pega que le veo
+wx (events, inheritance) mejor opcion incluso si desarrollamos bajo W32 C++. MFC es demasiado complejo.
+para pda no se adapta tan bien debido a la peculiaridad del dispositivo. para éstos, es preferible emplear Java. De todos modos habría que reescribir la interfaz, puesto que J2ME no es igual que J2SE-Swing.
+
+
+wxsingleinstance checker
+make a wx class wrapper for wx into curses??
+
+requiere:
+
+=== Burdas equivalencias ===
+Para los que venimos del mundo del desarrollo web:
+select wxChoice
+input text wxTextCtrl su contenido puede fijarse en el constructor
+input radio wxRadioButton
+input checkbox wxCheckBox
+table wxListCtrl
+
+== Recodificación ==
+Uno de los problemas a la hora de ejecutar la misma app en Win y Linux son las tablas de códigos. Linux suele emplear UTF-8 de un modo habitual a la hora de escribir los archivos de texto. Windows, por contra, emplea la tabla windows-1252 (CP1252). Este es el motivo de que al crear un archivo de texto en un sistema, no tenga acentos o símbolos especiales en el otro (sólo coinciden los 128 primeros ASCII). Además el cambio de línea es LF en Unix y CRLF en Windows.
+
+Para convertir un archivo a otra tabla de codificación, usar recode . Este programa convierte un archivo de una tabla de códigos a otra (o la tabla local si no se especifica nada).
+ $ recode ..windows-1252/CRLF facturas.py #OJO, sustituye el archivo original
+ $ cat kk.txt | recode windows-1252.. > kk2.txt #mantiene intacto el original
+
+
+== wxPy demos ==
+cambiar en run.py ''inspection'' por ''inspect'' . 2 coincidencias.
+
+== multiplataformas ==
+win: 2.5 y wxpy
+mac os (pre leopard): necesita py 2.5
+ubuntu 7.04: necesita los paquetes python (que debe ser el 2.5 por lo menos) y python-wxgtk2.8
+
+== Instalar un programa ==
+Python nos permite hacer funcionar el .py en cualquier plataforma, con tan sólo tener las bibliotecas adecuadas y el script.
+
+Para Linux:
+#Asegurarnos que el sistema tiene los paquetes ''python2.5'' y ''python-wxgtk2.8''.
+#Copiar la carpeta del programa a ~ .
+#Ahora hay dos opciones:
+##Crear un lanzador en el escritorio. En la aplicación, escribir ~/.mi_app/mi_app.py .
+##Otorgar, si no tuviera, permisos de ejecución a mi_app.py . Ejecutar mediante doble clic. Según la configuración del entorno, debería abrirse sin terminal y sin preguntar.
+
+Para Windows, es sorprendentemente parecido:
+#Instalar [http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi Python 2.5] y [http://downloads.sourceforge.net/wxpython/wxPython2.8-win32-unicode-2.8.6.1-py25.exe wxPython].
+#Copiar la carpeta que contiene el programa y anejos a C:\ .
+#Ahora hay dos opciones:
+##Sacar un acceso directo del programa mi_app.py al escritorio. En la ruta, añadir C:\python25\pythonw.exe delante del nombre completo del programa. Ejecutar en el path.
+##Renombrar el programa de .py a .pyw . De este modo se ejecuta con doble clic sin ventana MS-DOS. Sacarle un acceso directo en el escritorio.
+
+=== Creando un instalador para Windows ===
+Otra posibilidad a la hora de distribuir un programa para Windows es crear un ejecutable, gracias a py2exe y a NI.
+Crear setup.py con:
+ from distutils.core import setup
+ import py2exe
+ 
+ #http://www.py2exe.org/index.cgi/Tutorial
+ #generar carpeta dist con exe mediante python -OO setup.py py2exe
+ 
+ setup(
+  version = '0.85',
+  description = 'Sencillo control de facturas',
+  name = 'PIfacturas',
+  windows = [
+    {
+    'script': 'facturas.pyw',
+    'icon_resources': [(0, 'f.ico')]
+    }
+  ]
+ )
+Ahora...:
+ C:\> python -OO setup.py py2exe
+Compila los .py de nuestra aplicación optimizando, y genera una carpeta dist con los archivos. Crear el instalador NSIS.
+
+=== Creando un paquete .deb ===
+De este modo es muy sencillo instalar el programa, controlar las dependencias, actualizaciones...

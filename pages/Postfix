@@ -1,0 +1,388 @@
+[http://www.postfix.org Postfix] es un MTA rápido y fácil de administrar pensado para sustituir a sendmail. Se configura a través de los ficheros ubicados en /etc/postfix . En este documento se detalla información referida a Postfix en sistemas tipo Debian. Para otros sistemas las rutas pueden sufrir variaciones.
+*http://www.faqs.org/rfcs/rfc821.html
+
+== Instalación ==
+Por parte de los daemons SMTP:
+ # apt-get install postfix postfix-mysql
+Por parte de los daemons POP/IMAP:
+ # apt-get install courier-authdaemon courier-authmysql courier-pop courier-imap
+
+mkdir /var/spool/mail/virtual (se crea en /var/mail realmente)
+
+# cat valias.mysql 
+ user=mail
+ password=kk
+ dbname=maildb
+ table=valiases
+ select_field=destination
+ where_field=mail
+ hosts=127.0.0.1
+ additional_conditions = and enabled = 1
+
+# cat vmailbox.mysql 
+ user=mail
+ password=kk
+ dbname=maildb
+ table=vmailboxes
+ select_field=destination
+ where_field=mail
+ hosts=127.0.0.1
+ additional_conditions = and enabled = 1
+
+# cat main.cf 
+ smtpd_banner = ESMTP Willkommen, ist es ein Vergnügen für mich empfängt dich benötigt
+ biff = no
+ append_dot_mydomain = no
+ relayhost =
+ inet_interfaces = all
+ 
+ #para unix accounts
+ alias_maps = hash:/etc/aliases
+ home_mailbox = Maildir/
+ 
+ 
+ #contra el spam
+ smtpd_soft_error_limit = 60
+ smtpd_hard_error_limit = 60
+ disable_vrfy_command = yes
+ smtpd_helo_required=yes
+ smtpd_sasl_auth_enable = yes
+ broken_sasl_auth_clients = yes
+ smtpd_recipient_restrictions = 
+                         permit_sasl_authenticated
+                         reject_unauth_destination
+                         reject_rbl_client sbl.spamhaus.org
+ #                       reject_rbl_client dnsbl.sorbs.net
+                         reject_rbl_client list.dsbl.org
+ #                       check_recipient_access hash:/etc/postfix/destinos
+ smtpd_sasl_local_domain = 
+ smtpd_sasl_security_options = noanonymous
+ unknown_virtual_mailbox_reject_code = 554
+ smtpd_data_restrictions=reject_unauth_pipelining
+ header_checks=regexp:/etc/postfix/header_checks
+ mime_header_checks=regexp:/etc/postfix/mime_checks
+ 
+ #para el resto
+ virtual_mailbox_domains = sitiucosdecantabria.com
+ #virtual_mailbox_domains = mysql:/etc/postfix/domains.mysql
+ virtual_mailbox_base = /var/mail/virtual
+ virtual_mailbox_maps = mysql:/etc/postfix/vmailbox.mysql
+ virtual_minimum_uid = 105
+ virtual_uid_maps = static:105
+ virtual_gid_maps = static:108
+ virtual_alias_maps = mysql:/etc/postfix/valias.mysql
+
+A continuación explicaré los motivos de esta configuración.
+
+== Modificando main.cf ==
+Este es el fichero de configuración principal de Postfix. Por defecto, una instalación de Postfix (tomando parámetros por defecto) realiza la entrega a usuarios locales ''out of the box''.
+La configuración que se define en main.cf, consta de pares ''parámetro = valor o valores'' separados por comas. Un parámetro se puede usar como valor, si se le precede de un $. Podemos dividir los parámetros en bloques de funcionalidad.
+#Parámetros referentes al host
+#Parámetros acerca de los usuarios de correo
+#Parámetros acerca de las restricciones aplicables a la comunicacion smtp
+
+Los parámetros referentes al host suelen ser fijos. Establecer siempre éstos:
+ smtpd_banner = ESMTP Willkommen, ist es ein Vergnügen für mich empfängt dich benötigt
+   # el mensaje de bienvenida al acceder por telnet, no debe mostrar información sensible
+ relayhost =
+   # dejarlo vacío indicando que no hacemos relay
+ inet_interfaces = all
+   # poner all, o poner las direcciones IP de las interfaces que queremos escuchar separadas por comas
+ append_dot_mydomain = no
+   # esto es tarea del MUA
+ biff = no
+ myhostname = host
+   # forzamos el nombre de host, explicación más adelante
+
+Ejecutar postfix reload si se cambia algún campo de este fichero, para así aplicar los cambios.
+Los valores por defecto (aquellos que se aplican si no se especifica el parámetro) los podemos consultar con postconf -d . Se observa que:
+ mydestination = $myhostname, localhost.$mydomain, localhost
+ myhostname = host.domain.tld
+   #FQDN al que apunta nuestro registro DNS MX10, sacado del comando host, aunque también acepta el nombre de host
+ myorigin = $myhostname
+   #@dominio que añade a los correos con origen en la propia máquina, debe ser uno de los considerados propios
+Si nuestro nombre de host (devuelto por el comando hostname) coincide con el especificado en el MX10 del DNS, recibiríamos correos a usuarios locales ...@host.domain.tld . Esta característica podría no interesarnos, ya que llegaríamos a recibir correo no solicitado en usuarios importantes del sistema (root, ftp...). Evitar esto pasa por especificar como hostname un nombre no cualificado, irresoluble por DNS. Es decir, un nombre de host a secas. Como tener un nombre de host a secas en hostname, y no especificar myhostname hace saltar un warning al inicio de Postfix, hay que forzar myhostname en la configuración. Desgraciadamente, pese a que es la solución preferida, nuestros mensajes salientes podrían ser rechazados por otros servidores en el HELO, ya que el nombre de host no es completo. Tampoco funcionaría amavis. Asi que, si no queremos recibir correo en usuarios del sistema, forzamos el nombre de host a uno irresoluble. Si no queremos tener problemas con la entrega a otros servidores o usar amavis, usar un FQDN y añadir restricciones a clientes/destinatarios.
+
+A continuación se añadirán los parámetros acerca de buzones, dominios y cuentas.
+
+== Dominios ==
+Los dominios a los que puede atender Postfix se clasifican en las siguientes secciones:
+*canónicos (''canonical''): aquellos hostnames y direcciones IP de la propia máquina en la que corre Postfix, incluyendo a veces al dominio padre del hostname. local domain
+*alojados (''hosted''): dominios de correo alojados en este servidor, virtual alias o virtual mailbox
+*''backup relay'': este servidor almacena el correo de otro MX mientras esté caído.
+
+Surgen las siguientes clasificaciones:
+*''shared domains'': el correo llega al usuario info, que es único, para todos los dominios. Ej: info@nostel.net, info@tiendasconexion.com ....
+*''separated domains'': los usuarios y cuentas están diferenciados en cada dominio, de tal modo que info@nostel.net no es el mismo que info@tiendasconexion.com, ya que apuntan a cuentas distintas (o el mismo nombre de cuenta pero en otro dominio).
+
+
+== Cuentas de correo ==
+Las cuentas de correo del sistema Postfix pueden estar o no relacionadas con las del sistema UNIX anfitrión. Asimismo, la entrega del correo puede ser estricta o no con el dominio al que se dirige el correo. Se distinguen dos tipos de cuentas:
+*locales (''UNIX account''): los usuarios forman parte del sistema UNIX, aplicándose las políticas de nombre, contraseña y número máximo de usuarios. Es decir, no se pueden ver las contraseñas, sólo restablecerlas, y puede haber 65535 como tope.
+*virtuales (''virtual mailbox''): los usuarios no forman parte del sistema UNIX. La base de datos 
+
+
+== Relación de dominios y cuentas ==
+Postfix permite relacionar de varias formas, los dominios y cuentas que queremos implementar, con relación al sistema anfitrión, dando lugar a diferentes soluciones de correo.
+
+*Entrega a usuarios locales:
+Postfix siempre entrega el correo a los usuarios locales. Suele darse el caso de que un usuario sea administrador, y reciba el correo de más cuentas aparte de la suya. También es común que haya cuentas ficticias que no corresponden con un usuario del sistema directamente (como postmaster), o que sea un usuario sin directorio home. Para todas estas circunstancias, es un estándar en los sistemas UNIX hacer un alias de usuarios.
+ alias_maps = hash:/etc/aliases
+ mydestination = www, localhost.localdomain, localhost
+Este fichero, que debe existir en el sistema aunque esté vacío, contiene los usuarios a los que entregamos correo local. Al contrario que sendmail, no puede contener direcciones, tan sólo cuentas. Cuando Postfix recibe un correo, va leyendo esta tabla, varias veces, hasta que obtiene un nombre de usuario, y a continuación le intenta entregar ese correo. Y como en otros parámetros de Postfix, se permite tener varias BBDD separadas por comas, cuando empleemos diferentes almacenes para alias_maps.
+
+La lista de dominios a los que permitimos la entrega (esto es, dominios que consideramos locales) se especifica en mydestination. Al menos uno de estos dominios debe coincidir con el especificado en myorigin (/etc/mailname).
+Es similar a una implementación a-la-sendmail, si listamos en mydestination todos los dominios que alojase esta máquina. El correo se entregaría a los buzones de los usuarios que tengan cuenta en el sistema (o tengan un alias) y el dominio coincidiera con alguno de los listados. Una implementación de este tipo (llamada también ''quick and dirty'') sería útil de cara a tener un único dominio, y con cuentas locales.
+
+*Entrega a usuarios locales de varios dominios:
+ virtual_alias_maps = hash:/etc/postfix/valias
+ virtual_alias_domains = foo.com, bar.com
+virtual_alias_maps realmente lo que posibilita es una reescritura de los correos entrantes. Es capaz de mapear una dirección de correo a otra dirección (una o varias, del sistema o externa) o a un usuario (definido en alias).
+Si definimos virtual_alias_maps los correos entrantes se comprueban en esta tabla, para determinar si deben salir del sistema, o coinciden con algún usuario local. En ese caso, se realizaría la entrega siguiendo las pautas de alias_maps. Y virtual_alias_maps es una manera muy cómoda de hacer 'listas de correo', de tal modo que una cuenta externa llegue a varios destinatarios dentro. Si no pudiera hacerse la entrega a alguno de los destinatarios, el remitente recibiría un mensaje.
+ varios@foo.com  a@foo.com,b@foo.com
+ a@foo.com       a
+ b@foo.com       b
+
+*Entrega a usuarios locales virtuales de varios dominios:
+ virtual_mailbox_domains = foo.net, bar.net
+ virtual_mailbox_base = /var/mail/virtual
+ virtual_mailbox_maps = mysql:/etc/postfix/vmailbox.mysql
+ virtual_minimum_uid = 5000
+ virtual_uid_maps = static:5000
+ virtual_gid_maps = static:5000
+Estos usuarios no existen realmente en el sistema, con lo que descargamos la base de datos de usuarios locales (que solamente puede albergar 65535). El mapa establece qué dirección coincide con qué buzón. No se pueden especificar varios buzones, para eso está virtual_alias_maps. Los buzones virtuales se encuentran en el directorio virtual_mailbox_base, que pertenece al usuario virtual_uid_maps:virtual_gid_maps.
+
+Con este método, las tablas virtual pueden estar en una base de datos separada (MySQL por ejemplo).
+Sin embargo esto puede ser un problema para leer y descargarse el correo, por que el IMAP/POP de turno debe ser capaz de trabajar con los buzones virtual.
+
+GRRRRRR
+Resumiendo, virtual_alias permite asociar un nombre de cuenta a un usuario UNIX, a otra cuenta en otro dominio (propio o externo) o a una lista que combine varios de estos (usuarios UNIX y cuentas de dominio). Ver man 5 virtual y man 8 virtual para más información.
+Y virtual_mailbox asocia un nombre de cuenta a un buzón de dominio en el propio sistema.
+
+=== Proceso de entrega del correo ===
+Se recorren los ficheros de mapeos ordenadamente. Recordar que:
+*1-virtual_alias asocia cuentas con UNO o VARIOS usuarios del sistema y/o UNA o VARIAS cuentas (incluso de otro dominio)
+*2a-virtual_mailbox asocia UNA cuenta con UN usuarios virtuales (no del sistema)
+*2b-alias_maps asocia UN usuario del sistema con UN usuario del sistema
+
+Este ciclo es recorrido varias veces, hasta que se finaliza en un usuario local, virtual o cuenta externa.
+#Postfix primero lee virtual_alias. En caso de que la dirección de destino coincida con una de las listadas, comprueba a qué se mapea. El mapa puede asociar a otras direcciones o a un usuario local, así que debe releerse, hasta establecer un destinatario (usuario o dirección) único. Si no hay coincidencia, se continúa igualmente.
+#Se mira ahora si la dirección está en la tabla virtual_mailbox_maps. En caso de estar, se obtiene el nombre de usuario virtual al que entregar el correo.
+#Se mira si es un usuario local.
+#Si es una dirección externa, se manda fuera.
+#Finalmente, al no haber coincidencia, se descarta.
+
+== Tablas y mapas ==
+hash, mysql...
+Ejecutar postmap /etc/postfix/virtual al cambiar este archivo de texto, para regenerar la base de datos. Ejecutar postmap -q kk@dominio.com /etc/postfix/virtual para ver si hay una coincidencia, y con quién mapea de existir.
+bbddsql problema por el chroot al acceder a mysql, hacerlo por socket tcp en vez de af_unix o hacer ln
+comrpobar consultas con my.cnf enable log restart
+
+== Agentes de transporte ==
+virtual, procmail, maildrop
+virtual voy sobrado
+permite quota y quota por carpeta
+
+=== maildrop ===
+apt-get source maildrop
+/usr/local/src/mail*
+export CPPFLAGS = -I/usr/local/mysql/include
+export LDFLAGS = -L/usr/local/mysql/lib
+./configure --prefix=/usr/local/courier --enable-maildropmysql --with-mysqlconfig=/etc/courier/maildropmysql.config --enable-maildrop-uid=5000 --enable-maildrop-gid=5000
+make
+cp maildrop/maildrop a ...
+
+main.cf
+maildrop_destination_recipent_limit=1
+virtual_transport=maildrop
+master.cf
+
+
+== Maildir versus Mailbox ==
+El formato del almacén de correo puede ser o bien un archivo grande, o bien un directorio con un archivo por correo. La primera, mbox, es más simple, y su principal problema es que al ir recibiendo correos el archivo crece, dificultándose su mantenimiento (imaginar el borrado de un correo en medio del archivo). Este archivo es bloqueado para leer/escribir, ya que tanto nuestro cliente POP/IMAP como Postfix pueden necesitar acceder a él simultáneamente (a veces se queda bloqueado). mdir se considera seguro en términos de bloqueo.
+
+Para que Postfix use un sistema u otro simplemente hay que especificarle un / en la definición del nombre del buzón de correo. En usuarios locales sería:
+ home_mailbox = Maildir/
+...y crea una carpeta el correo en el directorio HOME del usuario llamada Maildir con la bandeja de entrada. El nombre es Maildir por que es así como courier espera que se llame. En usuarios virtuales se añade el trailing slash (/) al campo usuario de la tabla virtual_mailbox_maps.
+
+Postfix crea el mbox o mdir cuando recibe correo válido hacia una cuenta por primera vez. Podemos forzar la creación del mdir mediante el comando maildirmake.
+
+=== Conversión de mbox a mdir ===
+Se pueden convertir los buzones de formato con la utilidad mb2md, disponible via apt-get. Hay que hacer una triquiñuela para la conversión:
+ $ sudo -s
+ # cp buzonentradaantiguo /var/mail/usuario
+ # mb2md -m # este parámetro fuerza que se use /var/mail/minombredeusuario como mbox
+ # mv /root/Maildir /var/mail/virtual/buzonentradanuevo # como ejecuté bajo sudo, el destino es /root/Maildir
+ # chown -R vmailbox:vmailbox /var/mail/virtual/buzonentradanuevo # reasigno permisos
+Evitaremos así que nos destruya nuestro propio mdir en la conversión.
+
+== Restricciones contra el UCE ==
+
+Ninguno de estos sería necesario en alguno de estos dos caso:
+*el mundo es ideal y no hay spammers
+*el servidor de correo atiende solicitudes exclusivamente locales o de una Intranet
+
+Lo primero que se debe hacer es deshabilitar la comprobación de la existencia de usuarios.
+ disable_vrfy_command = yes
+Postfix aplica una serie de reglas (RC, Restriction Class) a cada una de las fases de la comunicación SMTP:
+#''¿quién es el que ha conectado a nuestro socket?''
+#''HELO'' saludo, suele tener relación con el cliente o el servidor
+#''MAIL FROM:'' remitente, suele tener relación con el campo From: del header y con el cliente
+#''RCPT TO:'' destinatario
+[[Imagen: smtpseq.jpg]]
+Al no cumplirse alguna de éstas, se muestra un error tras el RCPT TO: y se detiene la comunicación. Si fuera todo correcto, se sigue procesando y se aplican las restricciones al contenido (DATA). Los encabezados; From:, To: y Subject: forman parte del cuerpo del mensaje (DATA).
+
+*http://www.postfix.org/uce.html
+*http://www.securityfocus.com/infocus/1593
+*http://www.seguridad.unam.mx/doc/?ap=tutorial&id=182
+*http://www.akadia.com/services/postfix_uce.html
+
+=== El cliente ===
+El host que se conecta a nuestro servidor.
+ smtpd_client_restrictions = hash:/etc/postfix/restricciones , reject_unknown_client
+reject_unknown_client previene que nadie que no resuelva su dirección IP a un PTR pueda usar nuestro servidor. Sin embargo esta opción banearía a todos los usuarios de la red local. Por consiguiente, hay que establecer primero permiso a todos los clientes de la LAN. Este fichero restricciones, es una representación ASCII de un mapa hash.
+ 192.168    OK
+Que tiene el mismo efecto que poner permit_mynetworks.
+
+=== En el HELO/EHLO ===
+Este campo suele omitirse en la comunicación. Otras veces se rellena con nombres de host no cualificados. Por tanto, no es conveniente aplicar restricciones REJECT a este parámetro, los resultados no serían fiables.
+La diferencia en estos dos comandos es que EHLO muestra las capacidades del servidor.
+
+=== En el MAIL FROM: ===
+No se suele usar.
+
+=== En el RCPT TO ===
+Aquí añadimos las restricciones, en principio al destinatario. Como es en el RCPT TO: es el momento que finaliza la cadena de comprobaciones, también es momento de añadir más restricciones. Se comprueban secuencialmente.
+ permit_sasl_authenticated #permite mandar correos a otros servidores si nos autenticamos (AUTH en la conversación SMTP)
+ check_client_access hash:/etc/postfix/amigos #permite mandar correos a otros servidores a los clientes indicados
+ reject_unauth_destination #imprescindible para no tener un Open Relay. rechaza mandar correos a otros servidores que no estén en la lista de relays autorizados
+ reject_rbl_client sbl.spamhaus.org #rechaza clientes de la lista negra
+No poner permit_mynetworks, pues no pediría SASL a los clientes de la red local.
+*http://www.uco.es/ccc/sistemas/postfix/restricciones.html
+
+=== Autenticación ===
+Si un servidor de correo tiene previsto atender envíos desde el exterior, debe tener sus correspondientes entradas DNS (A y MX10). Postfix por defecto permite reenvío a otros dominios (relay). Estas dos características son una auténtica bomba para nuestro servidor, ya que pronto sería detectado por spammers y lo emplearían para reenviar correo (Unsolicited Commercial Email)a través nuestro sin ser detectados. Nuestro sistema aparecería a no más tardar en conocidas listas negras, lo cual nos imposibilitaría enviar nuestro correo, legítimo, ya que sería rechazado por los demás servidores.
+
+Por tanto, es preciso habilitar una comprobación de la identidad, antes de mandar correo. De esto se encarga sasl2.
+
+apt-get install sasl2-bin libsasl2 libsasl2-modules libsasl2-modules-sql
+
+/etc/postfix/sasl/smtpd.conf
+ pwcheck_method: auxprop
+ auxprop_plugin: sql
+ mech_list: sql login plain
+ sql_engine: mysql
+ sql_hostnames: 127.0.0.1
+ sql_user: mail
+ sql_passwd: kk
+ sql_database: maildb
+ sql_statement: select clear from users where id='%u'
+
+ln -s
+
+
+añadir a recipent
+
+
+Por telnet, la introducción de nuestro pass de autenticación se hace con el comando auth plain CLAVEBASE64. La clave puede obtenerse por el siguiente método (requiere el paquete metamail):
+ $ printf 'usuario\0usuario\0clave' | mimencode
+
+=== En el DATA ===
+reject_unauth_pipelining
+
+header_checks y mime_header_checks
+
+mediante regexp nos cargamos ciertos adjuntos y los mensajes con marca de spam
+
+/^X-Spam-Level: \*{5,}.*/ DISCARD
+
+es mejor que /^X-Spam-Flag: .*YES/ REJECT ya que nos permite controlar esa etiqueta a cada usuario
+
+*http://www.postfix.org/header_checks.5.html
+
+== Spamassassin ==
+apt-get install spamassassin spamc
+spamc se comunica con el demonio spamd
+master.cf
+ smtp inet n - - - - smtpd
+  -o content_filter=spamassassin
+ spamassassin unix - n n - - pipe
+  user=vmailbox argv=/usr/bin/spamc -f -e
+  /usr/sbin/sendmail -oi -f ${sender} ${recipient}
+
+el usuario bajo el que corre debe tener un home válido, para guardar las preferencias ahi. no vale el usuario postfix. usar el usuario vmailbox mejor.
+
+
+/etc/spamassassin/
+
+local.cf:
+ trusted_networks
+ whitelist_from
+ ok_languages es
+ ok_locales es
+ skip_rbl_checks 1
+ mensaje propio
+ include...?
+
+.cf con estar vale
+
+modulos adicionales en los .pre
+
+debe estar corriendo
+master.cf
+
+ perldoc Mail::SpamAssassin::Conf
+
+ spamassassin -tD < mail
+ spamassassin --lint
+
+
+
+spamd Can't locate Sys/Hostname/Long.pm
+ # cpan -i Sys::Hostname::Long
+
+http://www.mines.edu/academic/computer/email/spam/spamuserprefs.shtml
+
+== Rendimiento ==
+Veamos el rendimiento a través de los logs.
+
+ $ grep "postfix/smtpd" mail.log | grep ": connect from" | wc -l
+Aquí puedo ver que tengo 13289 conexiones al día (9,2 al minuto) de las cuales...
+ $ grep "postfix/smtpd" mail.log | grep ": connect from" | grep "192.168." | wc -l
+734 son de la organización (de/hacia la LAN).
+ $ grep "identified spam" mail.log | wc -l
+684 --> marcados como spam y eliminados directamente
+ $ grep "address rejected" mail.log | wc -l
+5384 --> correos rechazados por que los envían a una cuenta inexistente
+ $ grep "blocked using" mail.log | wc -l
+6461 --> conexiones rechazadas por provenir de servidores en listas negras
+ $ grep "Relay access denied" mail.log | wc -l
+176 --> conexiones rechazadas por intentar usarnos como relay
+Mi servidor tiene...
+ $ egrep "status=sent\ \(250\ " mail.log | wc -l
+212 mensajes dirigidos hacia otros servidores de internet al día (unos 8,8 a la hora), todos ellos de usuarios autentificados.
+
+Es posible acelerar Postfix y reducir el tráfico hacia el exterior montando un servidor DNS local, en modo dns-caching. Postfix siempre acude al DNS (no toca hosts) para resolver hostnames.
+
+== Ayuda ==
+Los ficheros de logs están en /var/log/mail.log y mail.err. Si se borraran accidentalmente estos ficheros, recrearlos reiniciando /etc/init.d/syslog restart . No sirve de nada crear los ficheros y reiniciar Postfix.
+
+Páginas web de referencia:
+* http://www.postfix.org/VIRTUAL_README.html
+* http://www.postfix.org/non-english.html
+* http://flurdy.com/docs/postfix/
+* http://www.howtoforge.com/perfect_setup_ubuntu_6.06_p5
+
+== Competencia ==
+Exchange sincroniza carpetas con PDA.
+
+Con Exchange Hosted Services es Microsoft quien posee nuestros DNS MX.
+
+Ya que hablamos de Microsoft, decir que Hotmail es muy estricto a la hora de enviar correo. No nos acepta si tenemos IP dinámica o estamos en una blacklist.
+
+== Webmail ==
+Se aconseja integrar el correo con sistemas web como...
+*Squirrelmail ; robusto pero anticuado
+*Roundcube ; bonito, AJAX... pero tiene fallos
+*Mailbee ; simplón y parecido al antiguo Hotmail
+*Iloha ; no evaluado aún

@@ -1,0 +1,20 @@
+BeOS, el gran desconocido.
+
+Es un sistema operativo ideal para PCs con muy pocos recursos, sin renunciar a un entorno gráfico agradable. Instálalo y revivirás un Pentium 90.
+En semejante equipo, no pasarías de una shell en Linux/*BSD y Windows 95 iría arrastrandose. Windows 3.11 es demasiado obsoleto para considerarlo.
+BeOS fue desarrollado por Be Inc, en los 90s. Sin embargo un mal marketing y un gigante enfrente como Microsoft condenaron al ostracismo un brillante SO.
+Es todo un gozo ver un PC arrancar en 10 segundos, parece que el SO lo tuviera en ROM!!
+
+Hay dos maneras de instalarlo:
+- A través de otro PC:
+	Conectar el disco duro donde lo queremos instalar como esclavo. Conseguir BeOS 5 Personal Edition. Se instala como un programa más en un PC con Windows 95/98/Me, sin particionar ni nada (es un archivo de 512 megas). A continuación, ir a Apps , Installer, y seguir los menús. En 15 minutos tenemos BeOS funcionanado.
+- Descargando de http://beosonline.com/ la Developer Edition:
+Esto es como una 'distribución' de BeOS, con todos los parches que salieron a continuación, drivers añadidos y aplicaciones extra. Quemar un CD autoarrancable siguiendo las instrucciones. Ir al PC donde queramos instalar BeOS y seguir las instrucciones del CD.
+
+Yo he usado ambos métodos, y prefiero el segundo por que ya dispones de un equipo listo para trabajar. Está en un Pentium 133 32MB, compartiendo arranque con Windows 3.11.
+
+Software para BeOS: http://bebits.com/
+Mirror del site oficial ya desaparecido: http://www.beatjapan.org/mirror/www.be.com/documentation/user_docs/05_beos_customize.html
+Blog de un usuario: http://www.xs4all.nl/~pmlans/studio-33/html/articles/What_is_beos.html
+
+Truco: pulsar Ctrl+Alt+Shift a la vez que el icono BeOS. Aparecerá una nueva opción en el menu, Windows Decoration, que permite cambiar el aspecto de las ventanas y asemejarlas a AmigaOS, MacOS o Windows.

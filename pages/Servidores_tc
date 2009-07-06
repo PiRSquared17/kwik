@@ -1,0 +1,80 @@
+Tenemos 4 servidores principales, en el cuarto de servidores. El cuarto de servidores tiene aire acondicionado y protección SAI.
+Otros ordenadores se emplean como servidores pero no están en las mismas condiciones.
+
+
+== serverconexion2 ==
+192.168.1.2
+=== Características ===
+Dell PowerEdge 1800
+2 Intel Xeon
+2 HDD SCSI Hot-Plug
+4 GB RAM
+=== Software ===
+Windows 2003 Server. ATelefon.
+
+=== Uso ===
+ATelefon de tiendas, por terminal server. Servidor de archivos para conexión. Copias de seguridad en REV.
+
+=== Backup ===
+Para hacer backup de todo D:, se recupera por rsync desde el .1.4
+
+== satdata ==
+Tiene el VNC en modo escucha y el Satdata.
+=== Backup ===
+Script de seguridad
+ @echo off
+ I:
+ rm *gz
+ mysqldump --all-databases -uroot -p080602 > I:\eurowin.sql
+ gzip eurowin.sql
+ set fecha=%date:~0,2%-%date:~3,2%-%date:~8,2%
+ mv eurowin.sql.gz eurowin_%fecha%.sql.gz
+ rm eurowin.sql
+
+== itmserver2 ==
+192.168.1.5
+=== Características ===
+AMD 64 3200+
+HDD 160 GB SATA II
+1 GB RAM
+=== Software ===
+Windows 2003 Server. Eurowin. Jive Messenger.
+
+=== Uso ===
+Eurowin de ITM. Servidor de archivos para ITM. Copias de seguridad en REV. Servidor Jabber de [[mensajería]] instantánea.
+
+== correo.tiendasconexion.com ==
+192.168.1.4 - 172.16.0.4/24
+=== Características ===
+AMD 64 3500+
+HDD 160 GB SATA II
+1,5 GB RAM
+=== Software ===
+Ubuntu Server 6.06-amd64. vsftpd. Apache 2. Postfix 2.2. Samba 3. MySQL 5.
+=== Uso ===
+Almacén y gestión de las bases de datos. Aplicaciones web. Correo. Boletín.
+
+== correo.nostel.net ==
+72.249.20.249
+=== Características ===
+Dual Core AMD Opteron(tm) Processor 270
+HDD 4 GB
+160 MB RAM
+=== Software ===
+Ubuntu Server 6.06-i386. Apache 2. Postfix 2.2. MySQL 5.
+=== Uso ===
+Todas las páginas.
+Gran ancho de banda (40 GB/mes). En un datacenter de Dallas contratado a Rimuhosting. Entrar al [http://rimuhosting.com/cp panel de control] con usuario info@tiendasconexion.com y clave 2pdsrntr . Para acceder al servidor, ssh usuario@adslconorange.com , clave 1qmdl1 .
+Acceder a los archivos vía sftp://, scp, fish:// . Acceder a la BBDD tunelizando Navicat por ssh (no requiere exponer el puerto 3306).
+
+Como el SO es de 32bits, ifconfig sólo cuenta hasta 4GB de datos transferidos (similar a lo que pasa con el tiempo).
+
+=== Problema en instalación ===
+Al instalar cosas perl da un problema de locale .
+ # apt-get install language-pack-es
+ /etc/environment
+ locale -a
+ # dpkg reconfigure locales
+ export LC_CTYPE=C
+ export LC_MESSAGES=C
+ export LC_ALL=C

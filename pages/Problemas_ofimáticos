@@ -1,0 +1,63 @@
+== Saltos de línea en celdas Excel ==
+En una celda de hoja de cálculo, si hay mucho texto, los saltos de línea se añaden pulsando ALT+ENTER.
+
+
+== Convertir formato de celdas Excel ==
+Si tenemos una celda en formato texto y lo pretendemos convertir de formato, no vale con cambiar el formato de la celda.
+En caso de celdas con fechas, seleccionamos las celdas, y en el menú Datos-Texto en columnas, Separador: Tabulación y Formato de los datos en columnas: Fecha DMA.
+En caso de celdas con números, podemos hacer una columna extra con 1s (unos). Seleccionamos la columna a convertir, y sobre el primer elemento de la extra, botón derecho-Pegado especial-Multiplicar.
+O bien, fórmula que multiplica por 1.
+
+
+== Excel se abre en IE ==
+Para evitar esta molesta característica al descargar XLS, ir a tipos de archivo, buscar CSV y XLS y quitar en opciones avanzadas "Explorar en la misma ventana".
+[[Imagen:xls.png]]
+
+== Filtro Antispam en el cliente de correo ==
+Agregamos una regla de mensaje por la cual todos los correos con el campo Asunto que sea ::***** se vayan directamente a Eliminados. El servidor de correo marca los mensajes basura con esta cabecera, para reconocerlos.
+
+
+== Cambiar user-agent en Firefox ==
+Es...
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; es-ES; rv:1.8.0.7) Gecko/20060909 Firefox/1.5.0.7"
+...y lo cambiamos por el de IE
+"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)"
+Entrar en Firefox en about:config y añadir la clave general.useragent.override
+Añadir el que queramos.
+http://johnbokma.com/mexit/2004/04/24/changinguseragent.html
+
+
+== Creación de una firma para el Outlook Express ==
+Creamos un archivo firma.html con el siguiente contenido:
+<pre>
+<div style="position: absolute; text-align: left;">
+	
+<div style="float: left;">
+<img src="c:\itm.jpg" style="vertical-align: top">
+</div>
+	
+<div style="float: left; font-family: sans-serif; font-size: 14px;">
+<strong>Arturo Mantec&oacute;n Barqu&iacute;n</strong><br>
+Ingeniero T&eacute;cnico<br>
+<br>
+<div style="color: #44F; font-size: 11px; font-weight: bold;">
+ITM, S.L. · Pol. Ind. Mies de Molladar, 7 · 39311 Cartes · Tel: 942823181 · Fax: 942823138
+</div>
+</div>
+	
+</div>
+</pre>
+Y le ponemos en C:\ junto a itm.jpg .
+Desde el Outlook, en Herramientas, Opciones, pestaña Firmas elegimos una firma desde archivo, que será C:\firma.html .
+
+
+== Corel 9 está a pantalla completa ==
+Similar a pulsar F11 en un navegador, esta característica se llama ''Maximizar área de trabajo''.
+Es un botón, con dos cuadrados dibujados uno dentro de otro, al lado del número del zoom. Pinchar para volver a tamaño de ventana habitual.
+
+== Mozilla Thunderbird inicia lento ==
+Si tarda mucho en presentar las carpetas al iniciase, y muestra un mensaje tal que Costruyendo archivo de resumen para bandeja de entrada , debemos borrar los archivos .mfs de la carpeta Local Folders.
+Tras esto, en el próximo inicio se reconstruyen los resúmenes y en el siguiente, ya funcionará con normalidad.
+
+== Mozilla Thunderbird desordena mensajes ==
+Los mensajes tienen destinatarios, asuntos y contenidos mezclados entre sí. Borrar los archivos .idx .

@@ -1,0 +1,17 @@
+Con el fin de evitar los problemas que genera el MSN Messenger, se ha optado por usar un servidor de mensajería instantánea propio, situado en el ordenador 192.168.1.5 y basado en el protocolo Jabber (XMPP).
+
+Se usa como servidor Jive Messenger http://www.jivesoftware.org/messenger/ , abierto y multiplataforma, basado en Java.
+
+El acceso al panel de administración es usuario admin y clave cocacola.
+Han de crearse 90 usuarios (todas las tiendas por comunidades, oficina y plataforma).
+Se crean en el servidor por grupos, y se hacen visibles al resto de los grupos. De este modo, no tenemos que agregar contactos en cada cliente, los lee al conectarse.
+
+Como programa cliente se usa Psi, aunque hay otros.
+
+Conviene cambiar una serie de opciones de configuración:
+* OFF Ventana de contactos siempre encima
+* Borrar contenidos de ventana: ON Cuando la ventana de charla se cierra
+* ON Activar notificaciones emergentes (para los tres primeros checks)
+* ON Activar emoticonos
+* ON Especificar manualmente servidor: 192.168.1.5
+* OFF Cuaderno de bitácora de los mensajes

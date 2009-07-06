@@ -1,0 +1,49 @@
+Voy a hacer un router appliance en FreeBSD, con una interfaz web de configuración basada en el afamado framework de mi creación, ideal para funcionar en un Soekris.
+
+paquetes:
+cups
+lighttpd
+php5
+php5-pcre
+php5-session
+php5-mysql
+mysql-client-5.0
+mysql-server-5.0
+isc-dhcp3-server
+sudo
+
+/root/router con scripts .sh setuid
+la shell puede hacerse setiud
+hay que añadir scripts a sudo NOPASSWD
+
+qpopper no puede leer mail de root
+
+Eclipse project
+
+/etc/group
+añadirme en grupo fuse
+
+crear /etc/fuse.conf
+ user_allow_other
+
+sudo chmod +s /usr/bin/fusermount
+mkdir ~/mnt
+
+ssfs root@10.0.1.10:/usr/local/www mnt -o idmap=user -o allow_other
+fusermount -u mnt
+
+instalar cups
+notar que para añadir una impresora LPT, ésta debe estar encendida y conectada, de lo contrario cups no la muestra en el desplegable.
+cupsd.conf:
+ DefaultEncryption Never
+ allow desde 10.0.0.* y listen desde 10.0.0.254:631
+root debe tener pass (no sirve en blanco)
+
+== ipf ==
+stateful (keep-state) first match wins (quick)
+NPAT, for Network and Port Address Translation
+
+nat para rl0 direcciones de dentro se reescriben a la que tengamos (0/32) en rl0
+rdr
+
+y añadir una regla in al firewall el cual se aplica despues

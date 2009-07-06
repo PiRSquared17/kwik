@@ -1,0 +1,1099 @@
+Configuro una instalación a mi gusto. ¡Pero qué fácil!
+
+Ojo, Ubuntu Hardy podría no ejecutarse Live CD si no se fija
+ all_generic_ide floppy=off irqpoll
+...en la línea que carga el kernel en GRUB.
+
+== Hibernación ==
+La hibernación no funciona. Aparte de que...:
+*/etc/initramfs-tools/conf.d/resume debe apuntar a la partición swap
+*la partición swap debe ser mayor que la memoria RAM
+Efectuar los siguientes cambios:
+ $ sudo nano /etc/modprobe.d/blacklist
+ blacklist amd64_agp
+ $ sudo nano /etc/default/acpi-support
+ ACPI_SLEEP=true
+ ACPI_HIBERNATE=true
+ SAVE_VBE_STATE=false
+ POST_VIDEO=false
+ SAVE_VIDEO_PCI_STATE=true
+ $ sudo vi /etc/X11/xorg.conf
+ Option "NvAGP" "1"
+La clave es eliminar el módulo amd64_agp y dejar que el módulo nvidia gestione el AGP. Usando además compiz, asegurarse que ''Sync to VBLANK'' está desactivado ''gconftool -set /apps/compiz/general/screen0/options/sync_to_vblank 0 -type bool''
+
+Otros comentan que puede ser suficiente con activar DOUBLE_CONSOLE_SWITCH=true , pero no lo he probado.
+
+*http://www.amitsrivastava.net/2008-03-23-hibernate-suspend-resolved-ubuntu-gutsy-nvidia-dell-vostro/
+
+== Mi red ==
+Desactivo el avahi-daemon, cuya utilidad no he comprendido aún. Es un servicio que lanza /etc/init.d/networking. Sus scripts están en /etc/network/if-up.d . Quitarles permisos de ejecución con ''chmod -x avahi-*'' o desactivarlo de /etc/default/avahi-daemon.
+
+Mis interfaces están así configuradas:
+ # man interfaces
+ # cat /etc/network/interfaces
+ auto lo
+ iface lo inet loopback
+ 
+ iface eth0 inet static
+        address 10.0.0.1
+        netmask 255.255.255.0
+ 
+ iface ra0 inet static
+        address 192.168.1.172
+        netmask 255.255.255.0
+        gateway 192.168.1.1
+ #       hwaddress ether DE:AD:00:00:BE:EF
+ #       wireless-essid WLAN_C8
+ #       wireless-key 5A303031333439454343344338
+        wireless-essid WLAN_42
+        wireless-key 58303030313338363930463432
+ 
+ auto eth0
+ auto ra0
+
+Para reconfigurar una interfaz, recordar que primero hay que llevarla abajo, ifconfig ra0 down, y luego ya podemos cambiar los parámetros:
+ iwconfig ra0 mode Monitor key off
+ iwconfig ra0 essid privada key s:monic mode Managed
+ iwconfig ra0 essid KK mode Ad-Hoc key off
+Seguidamente, ifconfig ra0 up .
+
+Para cambiar la MAC, en las WiFi hay que desasociarse antes:
+ # ifconfig ra0 down
+ # iwconfig ra0 mode Managed
+ # ifconfig ra0 hw ether DE:AD:00:00:BE:EF
+ # ifconfig ra0 up
+
+=== Drivers propios para Ralink ===
+Los módulos para Ralink RT2500 (Conceptronic C54i PCI) y Ralink RT73 (Edimax EW-7318USg USB) que vienen por defecto con Ubuntu no ofrecen las facilidades hostapd, inyección...
+Descargar fuentes de '''rt2500''' desde:
+ wget http://rt2x00.serialmonkey.com/rt73-cvs-daily.tar.gz
+ wget http://rt2x00.serialmonkey.com/rt2500-cvs-daily.tar.gz
+Extraer, y entrar en los respectivos directorios Module. Ejecutar make;; make install .
+La interfaz se llamará '''ra0'''.
+
+El módulo antiguo es el '''rt2500pci''', y usa la capa '''mac80211'''. La utilidad nm-applet hace uso de este módulo pues la interfaz se denomina '''wlan0'''.
+ # nano /etc/modprobe.d/blacklist
+...donde añadiremos...
+ blacklist rt2500
+
+Cuado queramos hacer uso de inyección, etcétera... descargar el módulo para wlan0, y cargar el de ra0.
+ modprobe -r rt2500pci
+ killall nm-applet
+ modprobe rt2500
+
+=== Drivers Windozers ===
+Por otro lado, la calidad de los drivers para XP es mucho mayor que para linux. Si no necesitamos reinyección pero sí mejor calidad en la señal recibida, ndiswrapper nos provee el driver.
+ # make uninstall
+ # make
+ # make install
+ # cd c54ri
+ # ndiswrapper -i oem17.inf
+ # ndiswapper -l
+ oem17 : driver installed
+	device (1814:0201) present (alternate driver: rt2500)
+Ahora añadimos el módulo en /etc/modules, y el rt2500pci en la lista negra /etc/modprobe.d/blacklist
+
+== Arranque más rápido ==
+Se puede llegar incluso a [http://lwn.net/Articles/299483/ 5 segundos].
+
+Lo primero es desactivar servicios innecesarios. Desactivarlos quitando sus symlinks con ''update-rc.d -f xxx remove'', no quitando ejecución de ''/etc/init.d/xxx'', para así restaurarlo mediante ''update-rc.d xxx defaults''.
+ avahi-daemon
+ apmd
+ apport
+ hotkey-setup
+ dhcdbd
+ pcmciautils
+ portmap
+ rsync
+ atd
+ dns-clean
+ pppd-dns
+ lvm
+ atf
+ dns-clean
+ avms
+ gdomap
+ hdparm
+ hplip
+ ifrename
+ mdadm
+ ntpdate
+ wpa
+*http://ubuntuforums.org/archive/index.php/t-89491.html
+*http://www.linuxlove.org/2007/12/16/comprehensive-linux-system-services-list-explanation-and-recommendation/
+
+Otros servicios son innecesarios si no tenemos impresora etc...
+ cupsys
+ samba
+*http://lightningcrash.blogspot.com/2007/08/making-ubuntu-boot-in-19-seconds.html
+
+Arrancar mediante ''profile'' como última opción del grub para reperfilar el arranque (readahead). Modificar /etc/init.d/rc y fijar
+ CONCURRENCY=shell
+
+Hacemos más rápido el apagado y reinicio (runlevels 0 y 6), eliminando la ejecución de scripts. Muchos de ellos son innecesarios. Dejar los que se necesiten para detener con seguridad un servicio.
+*https://wiki.ubuntu.com/FasterBootProcess
+
+Mejorar la carga de GNOME quitando servicios como trackerd en Sistema->Administración->Sesiones .
+
+Comprobar mediante bootchartd.
+
+== La shell ==
+Usamos bash. Primero para examinar la historia al estilo FBSD, añadir los keybindings:
+ #básicos
+ "\e[A": history-search-backward
+ "\e[B": history-search-forward
+ #opcionales
+ set completion-ignore-case On
+ "\t": menu-complete 
+ #equivalente a TAB: menu-complete
+ "\C-a": complete
+Este último ''overrides'' al TAB pero consigue un completado cíclico.
+
+En el archivo /etc/inputrc se aplican a todo el sistema. En ~/.inputrc , al usuario. Y con el comando bind, al terminal/sesión que tengamos abierto. Para saber el código de una tecla, usar el comando read. ^[ es \e . Para mapear una acción de bash a una combinación ALT+algo o CTRL+algo, usar "\M-algo" y "\C-algo". Para que funcionen, no debemos crear una asignación capturada por el sistema (gnome por ejemplo, sin embargo sí funcionaría en la consola texto). bind -v , -V , -p y -P muestran las asignaciones de bind. stty -a muestra las teclas que afectan al terminal.
+
+A no ser que lo hayamos cambiado, el complete estará asignado a TAB. Para que este complete sea inteligente (contextual) editar /etc/bash.bashrc (system-wide, .bashrc user) y descomentar las tres líneas referentes a bash_completion.
+
+El valor de $PATH se fija a /bin:/usr/bin para usuarios normales, o /sbin:/bin:/usr/sbin:/usr/bin para el superusuario. Puede cambiarse alterando las definiciones ENV_PATH y ENV_SUPATH en /etc/login.defs . Bash no lee ~/.bashrc sino ~/.bash_profile cuando se invoca como login shell. Ver la sección INVOCATION en la página man.
+
+*http://articles.techrepublic.com.com/5100-10877_11-5683375.html
+*http://www.redhat.com/docs/manuals/enterprise/RHEL-4-Manual/gdb/bindable-readline-commands.html
+*http://www.geocities.com/h2428/petar/bash_bind.htm
+
+
+
+=== Reducir el número de terminales texto ===
+En Ubuntu no tenemos /etc/inittab como en Debian. Modificar los archivos /etc/event.d/ttyN y comentar con # las líneas que indican que esa terminal se inicia en el runlevel.
+
+=== La fuente de la consola texto es horrible ===
+Linux sustituye las fuentes que provee el hardware por unas propias. Ejecutar:
+ # dpkg-reconfigure console-setup
+Configurar como Latin1 y fuente VGA 16. Reconfigurará la fuente que fija GRUB/el kernel; lo lee /etc/init.d/console-screen.sh
+
+=== Comandos más usados ===
+Mediante este one-liner...
+ history|awk '{print $2}'|awk 'BEGIN {FS="|"} {print $1}'|sort|uniq -c|sort -rn|head -10
+...saco estadísticas de uso de comandos.
+
+Primeramente, history muestra una lista de todos los comandos que hemos ejecutado recientemente (utilizado por bash y otras shells para mostrar el comando anterior y posterior al pulsar las teclas de flecha arriba y flecha abajo, al usar !! para ejecutar el comando anterior, etc) siendo los que tienen los números más pequeños los más antiguos. Se utiliza awk para quedarnos con el comando en sí, sin argumentos ni flags. Utiliza sort para ordenar la lista de comandos alfabéticamente. Después uniq, que dada una lista en la que tenemos n líneas idénticas sucesivas deja sólo una de las líneas, añadiendo el número de líneas iguales que había antes (flag -c) al comienzo de la línea. Se vuelve a ordenar la lista de forma que la ordenación sea por el número de veces que se ejecutó el comando, que ahora es la primera cadena de la línea (-n para que sea ordenación numérica), y de mayor a menor (-r, reversed). Por último, se utiliza head para mostrar las 10 (-10) primeras líneas.
+
+*http://www-128.ibm.com/developerworks/aix/library/au-productivitytips.html?ca=dgr-lnxw07UNIX-Office-Tips
+*http://mundogeek.net/archivos/2007/05/21/los-10-comandos-linux-que-mas-utilizas
+*http://www.pixelbeat.org/cmdline_es_AR.html
+
+== Mi servidor web ==
+Los programas necesarios:
+ # apt-get install apache2 php5 php5-cli php5-gd
+ # apt-get install mysql-server-5.0 php5-mysql php-pear
+ # pear install DB #o descargable de pear.php.net
+
+Indicar para [http://httpd.apache.org/docs/2.0/mod/core.html#adddefaultcharset AddDefaultCharset UTF-8] para que añada en las cabeceras de la respuesta la codificación correcta en aquellos documentos que no tengan un ''meta http-equiv="Content-Type" content="text/html; charset=UTF-8"''. El navegador cliente determina la codificación del documento en base a estas dos directivas.
+
+Creamos las bases de datos. Metemos los datos:
+ # cat xeperdb.txt | mysql xeperdb
+ # cat wikidb.txt | mysql wikidb
+
+Autorizamos al usuario del wiki:
+ grant all on wikidb.* to 'wikiuser'@'localhost' identified by '.';
+(sustituir all por select,update,delete)
+
+Editamos /etc/apache2/sites-available/default a nuestro gusto. Activar (a2enmod) mod_rewrite.
+
+Añadimos el actualizador de DNS.
+ # apt-get install ddclient
+ # nano /etc/ddclient.conf
+  pid=/var/run/ddclient.pid
+  protocol=dyndns2
+  #use=if, if=ra0
+  use=web, web=checkip.dyndns.org
+  server=members.dyndns.org
+  mx=xeper.blogdns.net
+  backupmx=no
+  daemon=300
+  syslog=yes
+  login=dncrht
+  password='jotun'
+  xeper.blogdns.net,xeper.mine.nu
+
+Feisty tiene un bug o una feature consistente en que /etc/default/apache2 contiene NO_START=1 . Esto impide Apache arrancar con el sistema, ni con apache2ctl start. Poner esa variable a 0.
+
+=== DB Engine ===
+El motor predeterminado de MySQL 5.0 es InnoDB. Tiene la ventaja de que es ''ACID compliant'' (transacciones) pero es un poco más lento, consume 100 MB RAM más, y maneja todas las tablas y BBDD en un único fichero, el cual no disminuye nunca (''shrink feature'').
+
+Por tanto, usar MyISAM. Insertar los datos en el motor tradicional con:
+ $ sed 's/InnoDB/MyISAM/' wiki.sql | mysql wikidb -uroot
+
+Podemos convertir las BBDD existentes con este script:
+ <?
+ $l=mysql_connect('localhost','root');
+ 
+ $b=array('bdconexion',
+  'c-control',
+  'inven',
+  'maildb',
+  'wikidpto',
+  'wikitiendas'
+  );
+ 
+ foreach ($b as $d) { //recorro todas las BBDD
+  mysql_select_db($d); //selecciono una
+  $c=mysql_query('SHOW TABLES');
+  while ($r=mysql_fetch_row($c)) { //lista de tablas a convertir
+    print $sql="ALTER TABLE {$r[0]} ENGINE=MyISAM\n";
+    mysql_query($sql); //convierte
+  }
+ 
+ 
+ }
+ ?>
+Y luego eliminar los ib* de /var/lib/mysql, lo cual liberará espacio en disco. Poner en ''my.cnf'' skip-innodb .
+
+=== Codificación UTF-8 ===
+Es la tabla de caracteres de 8 bit habitual, más correcta de usar. Es la que usa la shell. Sin embargo Bindols utiliza CP-1252 para sus archivos y sistema de archivos, y en la web o BBDD se emplea frecuentemente ISO-8859-1 (latin1).
+
+Configurar el servidor web con AddDefaultCharset UTF-8 en apache2.conf (esta directiva es muy útil ya que evita tener que traducir utf8_encode el AJAX generado de vuelta si el servidor es AddDefaultCharset ISO-8859-1, y el enviado utf8_decode tampoco si es UTF-8 todo). Los meta tags, también especificarlos. En my.cnf añadir estas líneas a las correspondientes secciones:
+ [client]
+ default-character-set=utf8
+ 
+ [mysqld]
+ default-character-set=utf8
+ character_set_server=utf8
+ collation_server=utf8_unicode_ci
+ skip-character-set-client-handshake
+De tal modo que mysql ofrecerá los datos al cliente en el set de caracteres adecuado. Esto tiene el mismo efecto que mysql_query("SET NAMES 'utf8'", $db); después de conectar a la BBDD. Asegurarse que las tablas se almacenan internamente en utf8 con ALTER TABLE tbl_name CONVERT TO CHARACTER SET utf8; .
+
+Finalmente, el editor de texto debe trabajar también en UTF-8 (en Eclipse está en General->Workspace).
+
+=== Validador W3C ===
+Instalo el validador del W3C para no tener que usar la web validator.w3.org .
+
+ # apt-gt install w3c-markup-validator
+ # cpan #o bien sudo perl -MCPAN -e "install CGI"
+ cpan> install CGI
+ cpan> quit
+ # nano /etc/apache2/apache2.conf
+ Include /etc/w3c/w3c-markup-validator-apache2.conf
+ # nano /etc/w3c/w3c-markup-validator-apache2.conf
+ (cambiar el Alias, así cuando al servidor le pida localhost/validator me aparezca (sin ln -s). cambiar los ScriptAlias para CGI)
+ # /etc/init.d/apache2 restart
+
+=== Debug PHP ===
+Para depurar aplicaciones web PHP se instala la extensión xdebug.
+ sudo apt-get install php5-dev
+ sudo pecl install xdebug
+Ahora
+ $ sudo nano /etc/php5/apache2/conf.d/xdebug.ini
+ extension=xdebug.so
+
+
+Esto carga el módulo como una 'zend extension' (ver phpinfo()) , lo cual es necesario para introducir breakpoints.
+ $ nano /etc/php5/apache2/php.ini
+ zend_extension=/usr/lib/php5/20060613+lfs/xdebug.so
+
+Además
+ $ nano /etc/php5/apache2/php.ini
+ xdebug.remote_enable=on
+ xdebug.remote_handler=dbgp
+ xdebug.remote_host=localhost
+ xdebug.remote_port=9000
+
+=== Opcode compiler ===
+APC es libre, no como Zend.
+
+ $ sudo apt-get install apache2-threaded-dev
+ $ sudo pecl install apc
+
+Añadir después como extensión a conf.d y reiniciar apache.
+
+*http://www.debian-administration.org/articles/574
+*http://talks.php.net/show/cp08/16
+
+== Seguridad ==
+=== SSH sin login ===
+ssh es un sustituto seguro de rlogin, rsh y telnet. Permite ejecutar comandos remotamente, tales como una shell.
+Es posible evitar la petición de contraseña si generamos un par de claves RSA, privada y pública:
+ $ ssh-keygen -t rsa
+Pulsar ENTER (sin contraseña). En ~/.ssh/id_rsa se almacena por defecto la clave privada del usuario que se conecta. Podemos tener varias claves privadas, pero entonces hay que especificar cual se usará mediante la opción -i de ssh. Por omisión se usa ~/.ssh/id_rsa en conexiones de protocolo 2.
+
+Mover el id_rsa.pub (clave pública) al servidor, y añadirlo al archivo ~/.ssh/authorized_keys . Ahí se listan todas las claves que  son permitidas conectando a este servidor.
+ $ cat id_rsa.pub >> .ssh/authorized_keys
+
+=== Cortafuegos ===
+Usar el firewall habitual de Debian:
+
+ # nano /etc/init.d/firewall.sh
+  #!/bin/sh
+  iptables -F
+  iptables -X
+  iptables -Z
+  iptables -t nat -F
+  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+  iptables -A INPUT -i lo -j ACCEPT
+  iptables -A INPUT -i eth0 -j ACCEPT
+  iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+  iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+  iptables -P INPUT DROP
+ # chmod +x /etc/init.d/firewall.sh
+ # update-rc.d firewall.sh defaults
+ # /etc/init.d/firewall.sh
+
+Convertir este equipo en router de mi LAN 10.0.0.0/8 son dos simples líneas:
+ iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -j MASQUERADE
+ echo 1 > /proc/sys/net/ipv4/ip_forward
+
+Y ahora para encaminar tráfico a un equipo de la red interna (''abrir'' el puerto... ¡redirigir más bien!):
+ iptables -A PREROUTING -t nat -p tcp --dport 80 -j DNAT --to-destination 10.0.0.2:4662
+Como añadido, cuando tenemos este tipo de configuración, los equipos de la red interna no pueden hacer uso de la redirección, puesto que se aplica a IPs externas. Para aplicarlo a las internas, cada DNAT tendría que tener un SNAT asociado:
+ iptables -A POSTROUTING -t nat -p tcp -d 10.0.0.1 -s 10.0.0.0/8 --dport 80 -j SNAT --to 10.0.0.2:4662
+
+Si la política por defecto en FORWARD es DROP, hay que añadir:
+ iptables -A FORWARD -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+Guardamos log de todo el FORWARD:
+ iptables -A FORWARD -j LOG
+
+*http://www.spotswood-computer.net/present/iptables2.html
+*http://www.pello.info/filez/IPTABLES_en_21_segundos.html
+*http://www.linuxguruz.org/iptables/scripts/rc.firewall_010.txt
+*http://www.malibyte.net/iptables/scripts/firewall.iptables-generic
+*http://www.linux.com/howtos/IP-Masquerade-HOWTO/forwarders.shtml
+*http://www.chguy.net/news/mar01/kernel-netfilter.html
+
+=== Seguridad en Apache ===
+Tener las páginas bajo un usuario diferente al que corre el servicio apache2 evita que una vulnerabilidad del servidor tenga por consecuencia un deface. Que el usuario del servicio web tenga shell o no, no es relevante a la hora de ejecutar comandos.
+
+Cambiar en php.ini:
+ disable_functions = exec,passthru,proc_open,shell_exec,system,posix_kill,popen
+ allow_url_include=Off
+
+Con esto evitamos la ejecución de comandos y la inclusión de código remoto. Las vulnerabilidades suelen salir de system, eval o includes no validados. Se suele insertar código en system con system(chr().chr()....) como hicieron con phpBB (en forum/viewtopic.php/p=35&highlight=system...) poniendo el comando caracter a caracter. Otro método es incluyendo código de otro servidor. Este código, del cual tengo ejemplos, permite ejecutar comandos y mostrar información del host.
+
+
+Vulnerabilidades habituales, la mayoría por no validar una entrada o posible vía de entrada, del usuario:
+*XSS cross side scripting: postear en un foro código JS para robar la cookie. Solución restringiendo etiquetas, activar session.cookie_httponly, magic_quotes_gpc .
+*Descarga de ficheros: se pasa por GET un fichero a descargarse. Si se descuida, se descarga ../../../etc/passwd . Solución validando la entrada del usuario.
+*SQL Injection: la variable GET va directamente a la sentencia SQL, pudiendo obtenerse el nombre del usuario que corre el proceso y otros datos importantes. Evitable mediante magic_quotes_gpc y que el xxxsql_query() no permita más de un query separado por semicolons. Herramientas: sqlinjector, sqlbftools, bfsql, sqlpowerinjector, abisinthe.
+*Remote File Inclusion: se pasa por GET un trozo de código a incluir. Se usa una completa shell PHP..
+*Webtrojan: se uplodea un ejecutable, un PHP, en lugar de una imagen, y luego se busca en el path. Solución desactivando funciones de ejecución.
+Los datos no viajan más seguros por POST, ya que puede emplearse un proxy con el que modificarlos (oddysseus, achilles).
+
+Por lo general los puntos débiles de la aplicación están en llamadas que no validan la entrada del usuario.
+
+Ver http://www.honeynet.org/papers/webapp/
+
+== Dispositivos ==
+En la mayoría de Linux modernos, las entradas en /dev no se crean a mano (mknod, mayor number, minor...) sino que el sistema las crea automáticamente en función del módulo del kernel cargado. El daemon udev es el encargado de estas tareas.
+
+Un problema típico es que en dispositivos conectables tipo USB o 1394 el nodo creado en /dev no otorgue permisos de escritura al usuario que ejecuta el programa que controla ese dispositivo. Imaginemos un escáner USB: xsane necesita comunicarse con el escáner pero udev creó el nodo para root y 664. Podríamos cambiarlo a mano con chmod, pero este cambio se pierde al desconectar el dispositivo. El método es cambiar esos permisos en este fichero:
+ sudo nano /etc/udev/rules.d/40-permissions.rules
+Para saber qué driver o subsistema ha cargado este dispositivo hacemos uso de los comandos de información del sistema:
+ lspci
+ lsusb
+Bajo /sys/class están listados todos los dispositivos (no confundir con /dev, que a pesar de tener estructura de lista, no es lo mismo pues lo es coyuntural, lista indirectamente de los dispositivos, al ser el canal de comunicación con ellos). Pedimos información de qué driver usa qué dispositivo:
+ udevinfo -a -p /sys/class/ieee1394_node/00804580118cf932/
+Kino necesita lectura y escritura sobre /dev/dv1394/0 y /dev/raw1394 . El dispositivo se crea en /dev/dv1394/0, root:video. Otorgarle permisos 666.
+Despues informa que no puede leer de /dev/raw1394 . Ahora fijamos al usuario como miembro del grupo disk.
+Vemos que es el raw1384. En 40-permissions.rules lo buscamos, y le damos el grupo y modo deseado para así tener acceso. Aplico los cambios:
+ sudo /etc/init.d/udev restart
+
+Velocidades de la CPU:
+ cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
+
+== ''sudo'' me insulta ==
+Añadir con visudo la línea:
+ Defaults !lecture,tty_tickets,!fqdn,insults
+Borrar la clave con sudo -K. Ahora si erramos en la clave nos insulta.
+
+== Backups ==
+rsync hace backups comparando fechas de los archivos. al contrario que los comandos UNIX, es sensible a las barras del argumento fuente (cares about slashes on source).
+teniendo /a/foo y /b ...:
+ rsync -a a b
+produce /b/a/foo pero
+ rsync -a a/ b
+produce /b/foo
+Para hacer mis copias al handy:
+ rsync --delete --modify-window=1 -rlptv /datos/Pasatiempos/ /media/HANDYDRIVE/Pasatiempos
+ rsync --delete --modify-window=1 -rlptv /datos/Música/ /media/HANDYDRIVE/Música 2> ERR
+delete elimina archivos viejos, rlptv es recursivo-copia enlaces sin seguirlos-mantiene permisos-mantiene tiempos-informativo y la ventana de modificación en 1 segundo permite que, sincronizando con una unidad FAT, no copie ficheros iguales ya que FAT tiene una resolución de 2 segundos en las fechas.
+
+== Aplicaciones Mozilla ==
+
+=== Extensiones FF ===
+ custom buttons
+ dom inspector
+ firebug
+ fission
+ stop-or-reload
+ torbutton
+ user agent-switcher
+ web developer
+
+=== Instalamos Firefox en español y Flash 9 ===
+En versiones anteriores a Feisty hay que instalarlo así:
+ wget -c http://www.adobe.com/go/fp9_update_b2_installer_linuxplugin
+ tar -zxvf FP9_plugin_beta_112006.tar.gz
+ cp flash-player-plugin-9.0.21.78/libflashplayer.so /usr/lib/firefox/plugins/ #para que esté disponible a todos los usuarios
+Ahora podemos ir a la web de Adobe y usar el instalador.
+
+Tamaño de las imágenes, en grande, about:config y browser.enable_automatic_image_resizing a false.
+
+Firefox tiene [http://localhost/www/tech/index.php/Ubuntu_Edgy#Instalamos_Firefox_en_espa.C3.B1ol_y_Flash_9 un bug desde hace mucho tiempo] que le ralentiza en el cambio de pestañas.
+Para evitarlo, cambiar los lanzadores donde pone ''firefox %u'' por ''firefox %u -browser'' (-a firefox).
+
+=== Thunderbird en español ===
+ apt-get remove evolution
+ apt-get install mozilla-thunderbird
+ apt-get install mozilla-thunderbird-locale-es
+copiar cp -pR al directorio ~/.mozilla-thunderbird y modificar profiles.ini
+
+=== Iconos y widgets ===
+Los iconos de los programas Mozilla están sujetos a licencias que no les permite ser distribuidos "de base" con el sistema. Hay que añadirles después.
+Los iconos en Ubuntu están en /usr/share/pixmaps. Ejecutar este script.
+ http://doc.gwos.org/index.php/Firefox_&_Thunderbird_icon
+
+Adecentemos los widgets de las páginas de Firefox 2 (Firefox 3 tiene widgets nativos de GTK):
+ wget http://users.tkk.fi/~otsaloma/art/firefox-form-widgets.tar.gz
+ tar -xvzf firefox-form-widgets.tar.gz
+ sudo cp /usr/lib/mozilla-firefox/res/forms.css /usr/lib/mozilla-firefox/res/forms.css.bak
+ cat firefox-form-widgets/res/forms-extra.css | sudo tee --append /usr/lib/mozilla-firefox/res/forms.css > /dev/null
+ sudo cp -r firefox-form-widgets/res/form-widgets /usr/lib/mozilla-firefox/res
+ rm -rf firefox-form-widgets
+*http://osnovice.blogspot.com/2007/05/firefox-controls-are-ugly.html
+
+== OpenOffice ==
+Para no estar atados a la versión de OO.org que corresponde a la versión de Ubuntu (Hardy usa OO.org 2.4 todavía), lo desinstalamos e instalamos OO.org 3 :
+ sudo apt-get autoremove --purge openoffice.org-common openoffice.org-l10n-common openoffice.org-base-core
+
+Descargamos OOo_3.0.0_LinuxIntel_install_es_deb.tar.gz , que contiene los paquetes necesarios para instalar la suite. Ahora nos situamos en el directorio descomprimido DEBS:
+ cd OOO300_m9_native_packed-1_es.9358
+ cd DEBS
+ sudo dpkg -i *deb
+ cd desktop-integration
+ sudo dpkg -i *deb
+
+*http://wiki.services.openoffice.org/wiki/Documentation/FAQ/Installation
+
+== Modificaciones a Gnome ==
+gconf-editor nos lleva a un 'registro'. No ejecutarlo con sudo, pues iría al registro de root.
+
+apps-panel-objects - object type-menu object - use-custom-icon
+para cambiar el logo (killall gnome-panel)
+
+apps-nautilus-desktop
+trash_icon_visible
+volumes_visible
+iconsize -> nautilus 75%
+apps-gnomesession-options - /usr/share/pixmaps/splash
+
+para modificar las aplicaciones del diálogo alt+F2 buscar la clave apps/gnome-settings/gnome-panel
+
+
+gdm /usr/share/gdm/themes
+
+Establecer el mismo tema para aplicaciones gksu que el usuario actual. Copiar tal cual:
+ sudo -s
+ cd /root
+ ln -s /home/dani/.themes
+ ln -s /home/dani/.icons
+ ln -s /home/dani/Desktop
+ exit
+
+Iconos ''system wide'' del menú aplicaciones en /usr/share/applications . Del usuario en .local/share/applications .
+Tamaño de los mismos:
+ $ gedit .themes/kde4-oxygen/gtk-2.0/gtkrc
+ gtk-icon-sizes = "panel-menu=24,24:panel=24,24:gtk-button=24,24:gtk-large-toolbar=24,24"
+
+El icono de 'inicio', archivo 48x48 para verse a 24x24 en la barra:
+ $ cp /home/dani/.icons/Mac4Lin_Icons_v0.4/scalable/places/start-here.png .icons/UltimateGnome/scalable/places/start-here.png
+
+
+Las aplicaciones listadas en el diálogo Abrir con... son lanzadores (.desktop) que encontramos en ~/.local/share/applications/
+*http://ubuntuforums.org/archive/index.php/t-362368.html
+
+== Dock ==
+*http://phyx.wordpress.com/2008/08/08/kiba-dock-hardy-32-bit/
+
+Si por casualidad no está el nm-applet en el panel, es que hemos eliminado el área de notificación.
+
+Si algunas ventanas aparecen en negro es que la tarjeta se ha quedado sin memoria. Sucede con el build Treviño de compiz en tarjetas nVidia. Editar /usr/bin/compiz :
+ INDIRECT="yes"
+
+== Video y mp3 ==
+Reproduciremos mp3 y archivos de audio con xmms, el Winamp de Unix.
+Los archivos MIDI se reproducen gracias a timidity y xmms-midi .
+
+Sustituir totem-gstreamer por totem-xine .
+
+Un modo de añadir los codecs W32 por si no pudiéramos:
+ # wget http://mirror.home-dn.net/debian-multimedia/pool/main/w/w32codecs/laultimaversion.deb
+ # dpkg -i laultimaversion.deb
+
+=== FFMPEG ===
+Un programa que posibilita convertir archivos entre formatos de vídeo y audio. La versión que acompaña a Ubuntu no es capaz de tratar los archivos .amr ni .mp3 . Tenemos dos opciones para conseguirlo:
+
+''a)'' Podemos descargar los paquetes de Medibuntu, precompilados:
+http://packages.medibuntu.org/pool/free/f/ffmpeg/
+ ffmpeg
+ libavcodec0d
+ libavformat0d
+E instalarlos
+Eliminar con:
+ dpkg -rP --force-depends
+
+''b)'' O bien compilarle:
+ # cd /usr/local/src/
+ # apt-get source ffmpeg
+Si intentamos compilar ahora, nos dá error, depende de otros paquetes. Instalar los que indica:
+ # apt-get install quilt libogg-dev libvorbis-dev liba52-dev libdts-dev libimlib2-dev texi2html libraw1394-dev libdc1394-13-dev libtheora-dev libgsm1-dev
+Es lo mismo que:
+ # apt-get build-dep ffmpeg
+
+Queremos que ffmpeg tenga soporte para codificar MP3 y también para los AMR (de móviles):
+ # apt-get install liblame-dev
+ # cd ffmpeg-0.cvs20060823/
+ # cd libavcodec/
+ # nano amr.c
+ # wget http://www.3gpp.org/ftp/Specs/archive/26_series/26.104/26104-510.zip
+ # unzip 26104-510.zip
+ # mkdir amr_float ;; cd amr_float
+ # mv ../26104-510_ANSI_C_source_code.zip .
+ # unzip 26104-510_ANSI_C_source_code.zip
+
+Ahora creamos los paquetes deb. La última órden reemplazará los paquetes antiguos por los nuevos.
+ # DEB_BUILD_OPTIONS=”risky”
+ # dpkg-buildpackage
+ # dpkg -i ffmpeg_0.cvs20060823-3.1ubuntu4_i386.deb
+
+Si no funciona porque tenemos este error...:
+ Patch 031_x264_link_against_pic.diff does not remove cleanly (refresh it or enforce with -f)
+
+...no sé resolverlo, así que hago un make install tradicional, con la diferencia de que uso checkinstall, que crea un deb (así puedo eliminar los archivos en algún momento).
+Hacer:
+ # ./configure --enable-mp3lame --enable-amr_nb
+ # make
+ # checkinstall
+
+Ahora hay que evitar que en los apt-get upgrade nos actualice éste paquete. Obtenemos la versión mediante
+ $ dpkg -l | grep ffm
+Ahora modificamos /etc/apt/preferences
+ Package: ffmpeg
+ Pin: version 0.cvs20060823-3.1ubuntu4+medibuntu2
+ Pin-Priority: 1001
+
+[https://bugs.launchpad.net/ubuntu/+source/gst-plugins-bad0.10/+bug/110461 Totem no puede reproducir] AMR ni el sonido de los 3GP .
+Ha de cambiarse la asociación de Nautilus para estos archivos y que usen ffplay.
+
+=== Instalar cinelerra ===
+Cinelerra-CV (community version) es un editor no lineal de vídeo muy parecido al Premiere.
+
+Para instalar, añadir el repositorio adecuado para nuestra distribución, tal como indican en la página de [http://cvs.cinelerra.org/getting_cinelerra.php Cinelerra CV] (ojo con el final):
+ deb http://www.kiberpipa.org/~gandalf/ubuntu/feisty/cinelerra/i686/ ./
+
+Después:
+ # apt-get install cinelerra
+ # sysctl -w kernel.shmmax="0x7fffffff" #tamaño máximo de segmento de memoria compartida
+Hagamos este cambio permanente con  por medio de:
+ # echo "kernel.shmmax = 0x7fffffff" >> /etc/sysctl.conf
+
+== Grabar CD/DVD ==
+Usar gnomebaker, k3b o nero para grabar CDs y DVDs normales. El grabador de Nautilus no cierra bien los DVD (hace dvd video en vez de dvd datos y no se leen).
+
+Usar dvdstyler y dvdauthor para crear dvds con títulos.
+
+== Capturadora analógica ==
+La capturadora no la reconoce, pero sabemos que es una EasyTV. Una vez especificado el modelo de la tarjeta, ya es capaz de detectar el sintonizador.
+ tuner model: TP18PSB12P or TPI8PSB12P
+ This tuner is functionally compatible with Philips PAL_BG model:FI1216 datasheet fi1216mk2-datasheet.pdf, FI_FQ1200.pdf )
+ Internally this tuner uses a different(from the philips one) videodemodulator chip, namely the LA7567E.
+ number on print: KFA002A
+ chips inside tuner:
+ chip1 (PLL): Philips SA5523 (datasheet TSA5523M_1.pdf (is the same chip))
+ chip2 (VCO): Philips TDA 5737M (datasheet TDA5736_37_4.pdf)
+ chip3 (video demodulator): LA7567E (datasheet LA7567EV-A.pdf)
+*http://www.ecualug.org/?q=2005/02/22/forums/tv_tuner_linux
+
+ # nano /etc/modprobe.d/bttv
+ # BestBuy EasyTV TV Capturer
+ options bttv card=55 tuner=28 radio=0 pll=1 adc_crush=0
+ # nano /etc/modprobe.d/snd_bt87x
+ options snd-bt87x load_all=1
+
+=== Grabando vídeo ===
+Con ffmpeg o con el ffv1rec de avidemux.
+
+Con ffv1rec, un fork de nuvrec:
+ $ nano ~/.ffv1recrc
+ C=MJPEG
+ W=720
+ H=576
+ S=1
+ b=44100
+ M=1
+ q=5
+ d=200
+ $ ffv1rec kk
+
+El problema de este programa es que su contenedor es un archivo .nuv que no interpreta directamente cinelerra. ffmpeg ha mejorado mucho en lo referente a captura:
+
+ ffmpeg -vd /dev/video0 -async -vsync -ad /dev/dsp -target dv kk.dv
+ ffmpeg -target pal-vcd -f audio_device -i /dev/dsp -f video4linux2 -i /dev/video0 -f mpg -r 25 kk.mpg
+ ffmpeg -async 24 -s 640x480 -vc 0 -tvstd pal  -t 01:00:00  -f audio_device -i /dev/dsp -f video4linux2 -i /dev/video0 -f avi  -r 25 -v 2   -aspect 4:3 -acodec mp2 -ac 2 -ab 224k -vol 512  -ar 48000 -y -qscale 4 kk.avi
+
+Capturo en DV:
+ $ ffmpeg -vd /dev/video0 -async -vsync -ad /dev/dsp -target dv kk.dv #sonido a 48000
+Capturo en DVD:
+ $ ffmpeg -vd /dev/video0 -async -vsync -ad /dev/dsp -target pal-dvd -ar 44100 kk.mpeg2
+Capturo en DVD con resolución PAL CIF 352x288:
+ $ ffmpeg -vd /dev/video0 -async -vsync -ad /dev/dsp -target pal-dvd -s cif -ar 44100 kk.mpeg2
+Lo aconsejable es capturar en DV. http://forum.videohelp.com/topic290123.html
+
+Hay que destacar que se puede añadir en todos los casos el modificador -deinterlace , pero el archivo resultante ocupa más. Esta opción sólo es aconsejable si se va a ver el vídeo en sistemas de visualización progresivos como un ordenador (p.ej.: youtube). Si va a verse en un televisor, emplear entrelazado. El PAL es a 50 Hz, igual que la corriente eléctrica y se recibe un campo (lineas impares y pares) cada 1/50 de segundo. Un frame completo se recibe pues cada 1/25 de segundo.
+Por tanto, es conveniente, por razones de fidelidad, almacenar y capturar el vídeo tal cual es su fuente original: entrelazado. En el momento de exportarlo a otro medio, lo desentrelazamos. Este desentrelazado artificial genera impurezas y artefactos.
+Totem, el reproductor de vídeo de Ubuntu, es capaz de desentrelazar mientras reproduce (pulsando I). De este modo, visualizaremos correctamente el vídeo grabado.
+En cinelerra, es posible crear un proyecto para trabajar con este tipo de clips de vídeo entrelazados.
+
+ mencoder -oac mp3lame -lameopts br=128:cbr:mode=0 -ovc lavc -of mpeg -mpegopts format=xsvcd  -vf     scale=352:288,harddup -lavcopts     vcodec=mpeg2video:mbd=2:keyint=18:vrc_buf_size=917:vrc_minrate=600:vbitrate=2500:vrc_maxrate=2500 -ofps 30000/1001     -o movie.mpg -tv driver=v4l2:input=1:norm=pal:device=/dev/video0:adevice=/dev/dsp:forceaudio:forcechan=2 tv://
+
+ mencoder tv:// -tv driver=v4l2:input=1:norm=pal:outfmt=i420:device=/dev/video0:adevice=/dev/dsp:forceaudio:forcechan=2 -ovc lavc -oac mp3lame -lameopts br=128:cbr:mode=0:vol=0 -o keith.avi
+
+*http://www.mplayerhq.hu/DOCS/HTML/en/menc-feat-vcd-dvd.html
+*http://www.avidemux.org/admWiki/index.php?title=Ffv1rec
+*https://lists.ubuntu.com/archives/ubuntu-users/2005-January/020468.html
+*http://www.hometheaterhifi.com/volume_7_4/dvd-benchmark-part-5-progressive-10-2000.html
+*http://www.vxm.com/Progvsinter.html
+
+== Java y NetBeans ==
+=== Como paquetes de la distribución ===
+Java y Netbeans son dos paquetes de Feisty. Instalar:
+ # apt-get install sun-java6-jdk netbeans5.5 sun-java6-doc
+Tendremos que poner en /tmp jdk-6-doc.zip y netbeans-5_5.tar.gz (están en /datos/Instalancias 4 Linux).
+=== Con el instalador de Sun ===
+En versiones LTS (que aparecen cada dos años, con 6 de soporte), puede ser demasiado tiempo para ciertas aplicaciones, ya que el ciclo de algunas aplicaciones de terceros es mucho más corto que el de la versión de Ubuntu. Por tanto es aconsejable instalarlas aparte.
+Descargar de la página de Sun el JDK (con JVM) y Netbeans 6.1. Instalar primero JDK. Ajustar PATH:
+ # nano /etc/environment
+ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/home/dani/Compilados/programas/jdk1.6.0_13/bin:/home/dani/Compilados/programas/jdk1.6.0_13/jre/bin
+ JAVA_HOME:"/home/dani/Compilados/programas/jdk1.6.0_13"
+Instalar ahora Netbeans. Eclipse funcionará correctamente si se ajustan los PATH.
+El path a la JRE de Netbeans se ajusta en /home/dani/Compilados/netbeans-6.5/etc/netbeans.conf .
+
+Actualizar JDK y JRE requerirá ajustar los path, la configuración de netbeans y el enlace simbólico a su ruta correspondiente:
+ ln -s .mozilla/plugins/libjavaplugin_oji.so -> /home/dani/Compilados/programas/jdk1.6.0_13/jre/plugin/i386/ns7/libjavaplugin_oji.so
+
+Para instalar una JDK 32 bits en un Ubuntu 64 bits hay que hacer primero:
+ apt-get install ia32-libs
+De lo contrario, no funciona la instalación ni el programa (aunque se ajusten los path).
+
+=== Abrir .jar con doble click ===
+Crear un fichero conteniendo...
+ #!/bin/sh
+ java -jar $1
+Darle permisos de ejecución. Asignarle como comando para los archivos jar desde nautilus.
+
+=== Aspecto nativo ===
+Las aplicaciones Swing se ejecutan con el aspecto tradicional (Metal, o el más nuevo Ocean) de Java, el cual se supone idéntico en todas las plataformas. Para no [http://today.java.net/pub/a/today/2004/02/27/laf.html desentonar] con el resto de nuestro escritorio (y decir 'eh esto es Java..') podemos establecer un L&F más acorde. Este [http://www.moniundthomaskuenneth.de/tkplafutility/ programa descargable] permite cambiar un archivo responsable de establecer el look por defecto en las aplicaciones, de un modo intuitivo. Se edita el fichero /usr/lib/jvm/java-1.5.0-sun-1.5.0.08/jre/lib/swing.properties (también tiene su homónimo en Windows) y asigna el parámetro:
+ swing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel
+El tradicional hasta Java 1.4 era javax.swing.plaf.metal.MetalLookAndFeel . Ahora en 1.6 es com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel .
+
+Es posible invocar el programa forzando un L&F:
+ java -Dswing.defaultlaf=com.sun.java.swing.plaf.motif.MotifLookAndFeel -jar "/home/usuario/dist/kk.jar"
+ java -Dswing.defaultlaf=com.sun.java.swing.plaf.windows.WindowsLookAndFeel -cp . MiApp #o bien fijando $CLASSPATH
+*http://java.sun.com/docs/books/tutorial/uiswing/lookandfeel/plaf.html
+
+Para netbeans, se le puede arrancar como:
+ $ netbeans --laf com.sun.java.swing.plaf.gtk.GTKLookAndFeel
+O modificar en el fichero /home/dani/Compilados/programas/netbeans-6.5/etc/netbeans.conf
+ netbeans_default_options="-J-Xms32m -J-Xmx128m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m -J-Xverify:none -J-Dapple.laf.useScreenMenuBar=true --laf Nimbus"
+
+Un posible problema es que...
+ Exception in thread "main" java.awt.AWTError: Cannot load AWT toolkit: gnu.java.awt.peer.gtk.GtkToolkit
+   at java.awt.Toolkit.getDefaultToolkit(libgcj.so.70)
+   at java.awt.EventQueue.invokeLater(libgcj.so.70)
+   at principal.main(principal.java:952)
+ Caused by: java.lang.UnsatisfiedLinkError: libgtkpeer: libgtkpeer.so
+Se debe a que estamos empleando gcj en lugar de la JVM de Sun. Cambiarlo mediante:
+ $ sudo update-alternatives --config java
+...y seleccionando /usr/lib/jvm/java-6-sun/jre/bin/java
+
+Las fuentes de java se mapean en:
+ Compilados/programas/jdk1.6.0_13/jre/lib/fontconfig.properties.src
+Netbeans usa Bitstream Vera Sans Roman 9px. Indicar que se inicie con suavizado de fuentes en netbeans.conf añadiendo:
+ -J-Dawt.useSystemAAFontSettings=lcd
+...siendo:
+ “false” corresponds to disabling font smoothing on the desktop.
+ “on” corresponds to Gnome Best shapes/Best contrast (no equivalent Windows desktop setting)
+ “gasp” corresponds to Windows “Standard” font smoothing (no equivalent Gnome desktop setting)
+ “lcd” corresponds to Gnome’s “subpixel smoothing” and Windows “ClearType”
+
+
+Otras referencias:
+*http://java.sun.com/j2se/1.4.2/docs/guide/swing/1.4/Post1.4.html
+*http://wiki.java.net/bin/view/Linux/IntegrationWithNativeLinuxDesktops
+*http://wiki.netbeans.org/wiki/view/FaqCustomLaf
+
+=== Subversion ===
+Es una manera de compartir archivos mediante copy-modify-merge distinta a SMB (lock-modify-unlock). En este modelo, el archivo es copiado localmente, modificado, y entonces se suma su contenido al del servidor. En SMB, se modifica directamente el contenido del servidor, previo bloqueo. Permite además mantener un histórico de revisiones.
+Instalación servidor:
+Es muy importante que en el directorio especificado como root para el VirtualHost no haya un directorio llamado svn.
+ apt-get install subversion libapache2-svn
+ nano /etc/apache2/sites-available/default
+  <Location /svn> -----> dentro del VirtualHost
+   DAV svn
+   SVNPath /home/dani/svn
+   AuthType Basic -------> estas 3 si queremos acceso escritura protegido
+   AuthName "Teleia SVN"
+   AuthUserFile /etc/apache2/dav_svn.passwd
+   Require valid-user -------> sólo si queremos acceso lectura protegido
+  </Location>
+ htpasswd -c /etc/apache2/dav_svn.passwd dani
+  New password: d
+ cd /home/dani
+ svnadmin create svn
+ #svn mkdir file:///home/dani/svn/Spring/trunk -m "Trunk"
+ #svn mkdir file:///home/dani/svn/Spring/tags -m "Tags"
+ #svn mkdir file:///home/dani/svn/Spring/branches -m "Branches"
+ chown -R www-data:www-data svn
+
+Desde este momento, ya es accesible vía interfaz web a http://teleia.es/svn.
+
+Se puede hacer que apache escuche dos puertos simultáneamente en aquellos casos que no accedamos al puerto 80. Editar ports.conf:
+ Listen 8080
+
+Instalación cliente:
+ apt-get install subversion
+
+Ahora ya tenemos disponible svn desde CLI y Netbeans (hace uso del CLI, debe configurarse el path al ejecutable).
+
+Desde Netbeans, para subir un proyecto al repo, por primera vez, Import Into SVN. Para bajar (checkout) un proyecto, http://teleia.es/svn/xxx, importando el proyecto completo. Una vez sincronizado, hacer commits para subir archivos (update actualiza diffs de archivo local, sin sobreescribir).
+
+No deben crearse directorios manualmente, sólo a través del IDE. Los directorios, para sincronizarse por svn han de tener un directorio oculto llamado .svn . Con los archivos no hay problema.
+
+*http://bliki.rimuhosting.com/space/knowledgebase/linux/miscapplications/svn+notes
+*http://subversion.tigris.org/faq.html
+
+==== Desde CLI ====
+Existen clientes para Win y Mac. El proceso es el siguiente:
+1) Crear el directorio en el repositorio (initial import). Puede que ya exista, este paso es omitible.
+ svn import kwikweb http://teleia.es/svn/kwikweb
+2) Realizar un checkout. Se crea una copia local del repositorio, además de una carpeta oculta .svn que contiene la información de sincronización. Si venimos de 1), no crea copia local pues ya existe.
+ svn co kwikweb http://teleia.es/svn/kwikweb
+3) Ahora ya podemos trabajar y subir cambios, descargarlos, etc...
+ svn update
+ svn commit
+
+Las carpetas .svn guardan la información de sincronización, y están dentro de todas las subcarpetas descargadas o creadas nuevas. Si hacemos...:
+ $ grep -R teleia *
+...vemos que indica la URL del repositorio. Si cambiamos el repositorio habría que tocar todos estos .svn, o bien hacer:
+ $ svn switch --relocate http://teleia.es http://subcon.doesntexist.com
+
+*http://svnbook.red-bean.com/en/1.0/
+
+== Copias de seguridad ==
+=== Databases ===
+El ejecutable /root/copia.sh ...
+ #!/bin/sh
+ 
+ # volcamos bbdds
+ a=_`date +%d-%m-%Y`.sql
+ mysqldump -uroot xeperdb > xeperdb$a
+ mysqldump -uroot wikidb > wikidb$a
+ 
+ # comprimimos
+ tar vcfz bbdd$a.tar.gz *$a
+ 
+ # enviamos
+ ftp=ftp://ftp.usuarios.lycos.es
+ curl -T bbdd$a.tar.gz -uenanososcuros:snoofoons --url $ftp
+ 
+ # borramos rastro
+ mv bbdd* /media/Datos/Mi\ Sitio/bbdd.tar.gz
+ rm *$a
+... es llamado por cron, de vez en cuando:
+ @reboot         root    /root/copia.sh
+
+=== Sincronizar contenido con el portátil ===
+La carpeta del desarrollo web puedo hacer que esté 'en espejo' en mis dos equipos, con rsync. rsync viaja por ssh.
+#Tener instalado las UnxUtils y cwRsync en la máquina Windows, cliente, con los paths para la shell.
+#Generar un par de claves. Mover la clave pública al servidor, añadiéndola a ~/.ssh/authorized_keys . Ojo al nombre de usuario.
+#Tras redirigir los puertos y habilitar el firewall, asegurar sshd exclusivamente por clave (sin diálogo de password), añadiendo a /etc/sshd_config PasswordAuthentication no .
+#Desde la máquina cliente, ejecutar ''rsync -avz --delete dani@xeper.blogdns.net:"/media/Datos/Mi\ Sitio" /cygdrive/c/xeper.blogdns.net'' . Se copiará la carpeta Mi Sitio a C:\xeper.blogdns.net , actualizando archivos y sustituyendo el contenido obsoleto.
+
+== Problemas menores ==
+=== Cuando arranco desde Windows la hora está atrasada/adelantada ===
+Editar /etc/default/rcS y fijar UTC=yes . Esto es por que Ubuntu piensa que el reloj de hardware está con la hora UTC (usando tzconfig para ajustarlo a nuestra zona local), sin embargo XP siempre considera el reloj del sistema a hora local.
+
+=== Utilidades de consola pretenden que escriba una letra acentuada pero no puedo ===
+Tampoco vale copiar y pegar, así que será mejor ejecutar ese comando (cfdisk por ejemplo tiene este problema) habiendo fijado antes export LC_ALL=C .
+
+=== He instalado xorg manualmente pero no cambia a consolas texto ===
+La funcionalidad del cambio a consolas texto desde X11 no existe.
+ # apt-get install xkbutils xkeyboard-config
+Parece que /etc/X11/xkb/symbols/pc es un fichero proporcionado por xkeyboard-config , en el cual se listan los atajos de teclado y las acciones a tomar. Y xkbutils proporciona las herramientas para trabajar con esas teclas.
+
+=== Xorg debería reiniciarse con ctrl+alt+backspace pero reinicia el equipo ===
+... o en su otra vertiente...
+
+=== Quiero desactivar ctrl+alt+backspace de Xorg ===
+ Section "ServerFlags"
+        Option "DontZap" "yes"
+ EndSection
+
+=== Aparece MARK cada 20 minutos en syslog ===
+Editar /etc/default/syslogd:
+ SYSLOGD="-m o"
+
+=== SSH timeout ===
+Conectando a otro host, o con sshfs, debido a NAT, cuando no hay actividad el ssh se corta. Modificar /etc/ssh/sshd_config :
+ ClientAliveInterval 300
+
+=== Borrado de /lib/modules ===
+Accidentalmente rm -r /lib/modules/2.6.24-24-generic
+No reiniciar. Buscar paquetes que usan el directorio.
+ $ dpkg -S /lib/modules
+ module-init-tools, linux-restricted-modules-2.6.24-24-generic, linux-image-2.6.24-24-generic, linux-headers-2.6.24-24-generic, linux-ubuntu-modules-2.6.24-24-generic: /lib/modules
+Reinstalar uno a uno:
+ sudo apt-get --reinstall install module-init-tools
+
+=== Transferencia lenta en USB FAT32 ===
+*http://fixunix.com/bsd/86289-freebsd-very-slow-writing-usb-memory-stick.html
+*http://groups.google.com/group/linux.kernel/msg/8d1591196c0ae15e?pli=1
+*http://lkml.indiana.edu/hypermail/linux/kernel/0503.3/1701.html
+*http://communities.sandisk.com/sandisk/board/message?board.id=cruzersnou3&message.id=670
+*http://www.linuxquestions.org/questions/linux-hardware-18/slow-usb-write-speeds.-677588/
+*http://www.ufsexplorer.com/inf_linux_undelete.php
+
+== Bluetooth ==
+
+Teniendo instalado bluez-utils libbluetooth2 (libbluetooth1 en dapper) y libdbus podemos hacer uso de estas herramientas:
+ # hcitool scan
+...que lista dispositivos, y
+ # sdptool browse 00:17:E5:C5:58:0C
+...que examina servicios de un dispositivo BT identificado por su MAC.
+
+=== Módem GPRS ===
+Lo que nos insteresa es el servicio DUN (Dial Up Networking) y saber en qué canal opera.
+Ahora los archivos de configuración. En dapper son un poco distintas las opciones.
+ # cd /etc/bluetooth
+ # nano hcid.conf
+ options {
+        autoinit yes;
+        security auto;
+        pairing multi;
+        passkey "0000";
+ }
+ 
+ device {
+        name "%h-%d";
+        class 0x3e0100;
+        iscan enable; pscan enable;
+        discovto 0;
+        lm accept;
+        lp rswitch,hold,sniff,park;
+ }
+La seguridad auto para conexiones entrates hace uso del pin indicado en passkey. También ajustable a none.
+Para conexiones salientes se indica con:
+ passkey-agent --default /usr/bin/bluez-pin & #o /usr/lib/kdebluetooth/kbluepin (en GTK o QT)
+Estos dos programas sólo escriben a stdout PIN:xxx , siendo xxx la clave de emparejamiento (antes era el pin_helper). Ejemplo:
+ $ echo 'PIN:1234'
+ $ bluez-pin out 00:14:9A:53:4D:90
+Ahora presenta en pantalla un diálogo con la MAC proporcionada (aunque no sea válida) y la palabra ''entrante'' o ''saliente'' dependiendo de si pusimos ''in'' o ''out''.
+Se puede simular un script ejecutable tan simple como echo "PIN:xxx" de tal modo que podamos emparejar dispositivos en modo texto. Al reiniciar el servicio, passkey-agent muere, asi que sería conveniente ponerlo en los scripts.
+ # nano rfcomm.conf
+ rfcomm0 { #un rfcommN por dispositivo
+        bind yes;
+        device 00:12:62:D4:E2:9E;
+        channel 1;
+        comment "Mi Nokia";
+ }
+''bind yes'' empareja el dispositivo al reiniciar el servicio, y crea el dispositivo /dev/rfcomm0 . Un ''bind no'' haría que el comando rfcomm connect 0 fuera interactivo (útil para pruebas). En la forma genérica, si se ponen varios dispositivos rfcommN, hay que usar rfcomm connect N para conectarse a uno de ellos.
+Cualquier cambio en estos archivos requiere reiniciar el servicio para aplicarse.
+
+=== OBEX ===
+OBEX es un protocolo de transferencia. Existen dos modalidades:
+*OBEX Object Push: envía un "SMS" (mensaje) bluetooth con adjunto; archivo o aplicación
+*OBEX File Transfer: permite establecer un FTP hacia el teléfono
+
+ obexftp --bluetooth 00:17:E5:C5:58:0C --channel 11 --list
+idéntico a
+ obexftp -b 00:17:E5:C5:58:0C -B 11 -l
+Listar subdirectorios con:
+ obexftp -b 00:17:E5:C5:58:0C -B 11 -c E:/Python -l
+Se pueden examinar incluso subdirectorios ocultos como C:/Python y C:/System/Apps
+ obexftp -b 00:17:E5:C5:58:0C -B 11 -c E:/Python -k Desktop/cell.py
+Trabajar con archivos mediante las opciones -g ''get'' -p ''put'' y -k ''kill''
+
+''obexftp'' no funciona si simultáneamente el dispositivo está montado en GNOME.
+
+Desde gnome podría usarse un programa para el manejo de bluetooth: bluez-gnome pero presenta bugs en Hardy (no permite crear archivos):
+*https://bugs.launchpad.net/ubuntu/+source/gvfs/+bug/192637
+*https://bugs.launchpad.net/ubuntu/+source/bluez-utils/+bug/148712
+ - The Bluetooth manager in Ubuntu will show any type of bluetooth device, however onlye devices that have the appropriate services for file browsing will be browsable with Nautilus. So this is not a bluetooth (as in drivers, hardware) bug, It is a "UI and library implementation of OBEX" problem - oversimplifying here.
+ - Until Ubuntu 7.10, adding the gnome-vfs-obexftp package was enough to make this work *only* for devices that can be browsed (as mentioned above), 7.10 shipped with that bug.
+ - Starting Ubuntu 8.04 gnome-vfs-obexftp is replaced with gvfs and gvfs does not implement yet the Bluetooth backaend so Nautilus can handle browsing BT devices filesystems
+ 
+ Workaround for Ubuntu 7.10 (Gutsy): install gnome-vfs-obexftp
+ Workaround for Ubuntu 8.04 (Hardy): none, this is still in development.
+
+Instalando ''gnome-vfs-obexftp'' se examinarían teléfonos mediante obex://[00:12:62:d4:e2:9e] y obex:///.
+Por tanto en Hardy, emplear el programa [http://blueman.tuxfamily.org/ blueman].
+
+=== Eliminar dispositivos antiguos ===
+Blueman mantiene una cache de dispositivos en ''/home/dani/.blueman/blueman.conf'' : borrar el dispositivo de ahí.
+Por otro lado, cuando blueman no tiene dispositivos en caché, pregunta al daemon hcid (bluez-utils). Tal y como revela el manual, mantiene una lista de dispositivos en varios archivos de ''/var/lib/bluetooth/00:80:5A:40:99:93'' : editar los archivos (sdp, manufacturers, features, classes, lastused, lastseen, names) que contengan la MAC bluetooth y eliminar las líneas correspondientes. Si no se saben las MAC, tomar como ayuda ''names''.
+
+== Cable de datos DKU de Nokia ==
+Al conectarlo se reconoce como un /dev/ttyACM0 . Puede usarse como puerto serie para módem, o como obex FTP.
+ sudo apt-get install obexftp obextool
+ sudo obexftp -u
+ sudo obexftp -u 1 -l
+ sudo obextool --obexcmd "obexftp -u 1"
+
+== Internet GPRS ==
+
+A través del DUN, establecemos una conexión ppp0 con la salvedad que no es mediante módem, sino completamente digital vía GPRS/3G.
+Puede hacerse de dos maneras:
+#con wvdial, que simplifica el pppd
+#con pppd directamente
+
+wvdial viene con Edgy y tan sólo requiere modificar un archivo.
+ $ cat .wvdialrc
+ # cat /etc/wvdial.conf
+ [Dialer Defaults]
+ Baud = 460800
+ Init1 = ATZ
+ Init2 = ATQ0 V1 E1 S0=0 &C1 &D2 +FCLASS=0
+ Init3 = AT+CGDCONT=1,"IP","internet"
+ Modem = /dev/rfcomm0
+ Phone = *99***1#
+ Username = 'CLIENTE'
+ Password = 'AMENA'
+ # wvdial
+Asegurarse que el archivo /etc/ppp/peers/wvdial para que tenga este aspecto.
+ name wvdial
+ noauth
+ # no requiere autenticación
+ defaultroute
+ # establezco ppp0 como ruta por defecto
+ noipdefault
+ # pppd no debe proponer ninguna direccion IP al servidor
+ usepeerdns
+ # uso los DNS devueltos por el servidor
+ mtu 472
+ # evito datos extraviados disminuyendo la MTU
+Puede funcionar sin ello, pero quizá haya que ajustar manualmente rutas y MTU:
+ # route add default gw 10.6.6.6
+ # ip link set ppp0 mtu 472
+
+pppd es un poco más largo, aunque el resultado es idéntico. Crear /etc/chatscripts/proveedor :
+ "" AT&F
+ OK AT+CGDCONT=1,"IP","puntodeaccesoproveedor","",0,0
+ OK ATDT*99#
+ CONNECT \d\c
+Crear /etc/ppp/options.rfcomm :
+ -crtscts
+ local
+Crear /etc/ppp/peers/proveedor :
+ hide-password
+ noauth
+ connect "/usr/sbin/chat -v -f /etc/chatscripts/proveedor"
+ debug
+ /dev/rfcomm0
+ 115200
+ defaultroute
+ noipdefault
+ user USUARIO
+ ipparam proveedor
+ usepeerdns
+Añadir a /etc/ppp/pap-secrets :
+ USUARIO * CLAVE
+Conectar y desconectar con
+ # pon proveedor
+y
+ # poff
+
+Configuraciones para cada proveedor:
+*http://www.evolution3g.com/configuraciongprs.asp
+
+Usando una tarjeta PCMCIA (las Novatel Merlin se reconocen como puerto serie, otras con el driver nozomi incluido en Feisty) es un poco diferente:
+ # gcom -d /dev/noz0 #nos indica si coge red, y pide el PIN
+ $ cat .wvdialrc
+ [Dialer Defaults]
+ Baud = 460800
+ Modem = /dev/noz0
+ Phone = *99***1#
+ Username = CLIENTE
+ Password = AMENA
+ Stupid Mode = 1
+ Dial Command = ATDT
+ New PPPD = yes
+ Init2 = ATZ
+ Init3 = ATQ0 V1 E1 S0=0 &C1 &D2 +FCLASS=0
+ Init5 = AT+CGDCONT=1,"IP","internet"
+
+Si dejara de detectar la tarjeta SIM: matar wvdial, descargar el módulo (modprobe -r nozomi) y volverla a conectar.
+
+*http://inigoml.blogspot.com/2006/11/3gumts-con-linux-ubuntu-edgy.html
+
+== Actualizar sistema ==
+ # sed 'd/edgy/feisty/s' sources.list > s.bak
+ # apt-get update
+ # apt-get dist-upgrade
+
+== Búsqueda de ficheros ==
+Dos métodos:
+#find
+#locate
+
+Find permite muchas opciones de búsqueda, y dentro de una carpeta:
+ $ find ~ -name hola.py #busca hola.py en el directorio home
+ $ find /usr -name "*so" #busca todos los so de /usr
+ $ find /etc -size +3000k #busca en /etc todos los ficheros mayores de 3000 KB
+Cuando se encuentra un fichero sobre el que no tenemos permisos, sale un mensaje de error por el canal stderr. Redirigirlo con 2> /dev/null .
+
+Locate no rastrea el sistema de archivos directamente sino que delega esta función a updatedb. Esta base de datos, que consulta locate, contiene un índice de todos los archivos que puede ver un determinado usuario. Es menos potente que find por que no permite restringir la búsqueda a directorios. La búsqueda se realiza sobre la BBDD, que apunta al sistema de archivos, no sobre el sistema de archivos en el momento, como hace find.
+
+De este modo, se antoja un poco pobre de rendimiento. updatedb se ejecuta en cada arranque, con el fin de mantener la BBDD al día, rascando bastante disco duro. Desactivarla:
+ $ sudo chmod -x /etc/cron.daily/slocate
+
+Otras posibilidades de find para encontrar archivos con fecha posterior a una dada, mediante el empleo de un archivo auxiliar:
+ $ touch -d "14 jun 2007" kk
+ $ find . \! -cnewer kk -exec rm {}\;
+ $ find . -newer kk
+
+== Unidades ==
+Tal y como indica ''man hier'', /mnt se usa para contener puntos de montaje temporales. Actualmente se ha movido esta localización a /media .
+
+Gracias a sshfs puedo usar un directorio de otro PC localmente, pero sin NFS ni CIFS ni FTP, de un modo más seguro. Añado sshfs y edito /etc/fuse para permitir user_allow_other. Despues hago chmod 777 /mnt . Ahora ya puedo montar ahi carpetas remotas:
+ sshfs daniel@prisma-santander.dyndns.org:/var/clientes/solariaenergia.com/public_html /mnt -o allow_other -p 39009
+Desmontar con:
+ fusermount -u /mnt #no vale umount porque no soy root ni /mnt está en fstab
+
+Para Windows existe SFTPdrive, que mapea una unidad a un host ssh.
+
+== Sensores y control de temperatura ==
+Activar Cool&Quiet en la BIOS. Esta característica del AMD64 hace que se autoajuste la frecuencia de operación en función de la carga de trabajo. Se puede comprobar que funciona leyendo /proc/cpuinfo, y despues poniendo a trabajar el procesador con el comando yes desde otra consola y midiendo nuevamente. La frecuencia se ajusta automáticamente.
+
+Instalar lm-sensors y hddtemp. Para el primero:
+ $ sudo sensors-detect
+ $ sensors
+El segundo es directo:
+ $ sudo hddtemp /dev/sda
+ /dev/sda: MAXTOR STM3160211AS                     : 36°C
+
+== Joystick ==
+Se conecta al puerto MIDI DB-15. Necesita ciertos módulos, que no son detectados en el arranque. Añadir a /etc/modules :
+ #para el joystick /dev/input/js0
+ joydev
+ analog
+ ns558
+Es el último módulo el que crea el dispositivo (mknod /dev/input/js0 c 13 0)
+Instalar los programas:
+ $ sudo apt-get install joystick
+Calibrar el mando con:
+ $ jscal -c /dev/input/js0
+Probarle con:
+ $ jstest /dev/input/js0
+
+ $ nano .zsnes/zsnesl.cfg
+Buscar libAoDriver="auto" . Poner "sdl" .
+
+== Emuladores ==
+ fceu -inputcfg gamepad1 rom.nes

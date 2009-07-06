@@ -1,0 +1,328 @@
+Este equipo es el servidor de bases de datos, aplicaciones web, correo y páginas.
+Su sistema operativo es Ubuntu 6.06 LTS para amd64.
+Tiene dos tarjetas de red en las dos redes, el ADSL de IP fija, y la NetLAN, de tal modo que es accesible a equipos de ambos lados.
+
+== Configuración de red ==
+Posee una Realtek 8139 PCI (eth2) y una nVidia integrada en placa (eth0).
+Para que este equipo pueda usar las dos redes (enviar y recibir a través de ellas) tiene que tener dos puertas de enlace distintas. Como no es posible tener dos gateway por defecto, hay que establecer rutas estáticas, que se inician al arrancar según la configuración establecida en /etc/network/interfaces
+
+ # This file describes the network interfaces available on your system
+ # and how to activate them. For more information, see interfaces(5).
+ 
+ # Lista de interfaces que se "levantan" al iniciar sistema
+ # puede estar en varias lineas
+ auto lo eth0 eth2
+ 
+ # Descripcion de los interfaces
+ iface lo inet loopback
+ 
+ iface eth0 inet static
+         address 192.168.1.4
+         netmask 0xffffff00
+         up route add -net 192.168.0.0/16 gw 192.168.1.101
+ 
+ iface eth2 inet static
+         address 172.16.0.4
+         netmask 0xffffff00
+         gateway 172.16.0.1
+
+Las rutas están establecidas de tal modo que los hosts de la red privada se encuentran mediante el router .1.101 y el resto de hosts de Internet a través de router de IP fija. Al establecer la ruta de la NetLAN si hubieramos puesto -net 192.168.1.0/24 y tratásemos de hacer ping, un host 10.x.x.x nos rebotaría los paquetes.
+
+== Cámaras IP ==
+En este equipo se encuentra alojada una página web que permite ver todas las cámaras IP. En vez de que las cámaras manden imágenes, es este equipo el que las pide a las cámaras, con lo cual evitamos que se puedan bloquear si pierden Internet y no pueden mandar la imagen.
+
+Añadir o modificar las siguientes líneas en /etc/wgetrc :
+ tries=1
+ http_user=root
+ http_password=Orange
+ timeout=3
+
+Añadir en /etc/crontab :
+ */5 *   * * *   root    /home/usuario/Scripts/camaras.sh
+
+El contenido de camaras.sh es:
+ #!/usr/bin/php
+ 
+ <?
+ include('/home/usuario/Paginas/itm/tiendas/matriz.php');
+ 
+ $save='/home/usuario/Paginas/itm/tiendas/fotos';
+ system("rm $save/*jpg");
+ 
+ $i=0;
+ foreach ($tiendas as $t) {
+ 
+         if ($t!='') {
+                 $load="http://192.168.$i.92/cgi-bin/video.jpg";
+                 $save='/home/usuario/Paginas/itm/tiendas/fotos';
+                 system("wget $load -O $save/$t.jpg");
+         }
+ 
+         ++$i;
+ }
+
+== Apache ==
+Configuramos a través de /etc/apache2/apache2.conf (como el antiguo httpd.conf del 1.3). Desactivar Directory Browsing, SSIncludes, CGI Exec. Añadir para que las páginas erróneas no muestre un pie con información acerca del servidor:
+
+ ServerName localhost
+ ServerAdmin webmaster@localhost
+ ServerSignature Off
+ ServerTokens Prod
+
+Y asegurarse que está indicado:
+ <Directory />
+    Options FollowSymLinks
+    AllowOverride None
+ </Directory>
+
+Descomentar:
+ AddDefaultCharset       ISO-8859-1
+Lo cual nos evita tener que recodificar con utf8_encode en respuestas AJAX. Aunque casi mejor funcionar siempre con UTF-8.
+
+El /etc/apache2/sites-available/default define los sitios disponibles:
+ NameVirtualHost *
+ 
+ #
+ # VirtualHost example:
+ # Almost any Apache directive may go into a VirtualHost container.
+ # The first VirtualHost section is used for requests without a known
+ # server name.
+ #
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Aplicaciones
+        ServerName 192.168.1.4
+        CustomLog /dev/null combined
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Aplicaciones/c-control
+        ServerName c-control.tiendasconexion.com
+        CustomLog /dev/null combined
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot "/home/usuario/Paginas/tienda"
+        ServerName www.tiendasconexion.com
+        ServerAlias 80.24.111.178 tiendasconexion.com www.tiendasconexion.es tiendasconexion.es conexioncantabria.com *.conexioncantabria.com
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot "/home/usuario/Paginas/asociados"
+        ServerName asociados.tiendasconexion.com
+        ServerAlias asociados.tiendasconexion.es
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot "/home/usuario/Paginas/tienda/correo"
+        ServerName correo.tiendasconexion.com
+        ServerAlias correo.tiendasconexion.es
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Paginas/otras/nostel
+        ServerName www.nostel.net
+        ServerAlias nostel.net *.nostel.net
+        CustomLog /dev/null combined
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Paginas/itm/tiendas
+        ServerName tiendas.itmseguridad.com
+        CustomLog /dev/null combined
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Paginas/itm
+        ServerName www.itmcantabria.com
+        ServerAlias itmcantabria.com *.itmcantabria.com itmseguridad.com *.itmseguridad.com
+        CustomLog /dev/null combined
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Paginas/otras/conselec
+        ServerName www.conselec.net
+        ServerAlias conselec.net *.conselec.net
+        CustomLog /dev/null combined
+ </VirtualHost>
+ <VirtualHost *>
+        DocumentRoot /home/usuario/Paginas/wikitiendas
+        ServerName wiki.tiendasconexion.es
+        ServerAlias wiki.tiendasconexion.com
+        CustomLog /dev/null combined
+ </VirtualHost>
+ 
+ #lara
+ #Orange
+ <Directory "/home/usuario/Aplicaciones/Admin">
+          AuthUserFile "/home/usuario/Aplicaciones/Admin/.htpasswd"
+          AuthName "Seccion Administrador"
+          AuthType Basic
+          Require valid-user
+          AllowOverride All
+ </Directory>
+ 
+ #alfredo
+ #1qmdl1
+ <Directory "/home/usuario/Paginas/itm/tiendas">
+          AuthUserFile "/home/usuario/Paginas/itm/tiendas/.htpasswd"
+          AuthName "Camaras Web de Tiendas Conexion"
+          AuthType Basic
+          Require valid-user
+          AllowOverride All
+ </Directory>
+ 
+ #supervisor
+ #2811
+ <Directory "/home/usuario/Aplicaciones/c-control/supervisor">
+          AuthUserFile "/home/usuario/Aplicaciones/c-control/supervisor/htclave"
+          AuthName "Acceso solo para Supervisor"
+          AuthType Basic
+          Require valid-user
+         AllowOverride All
+ </Directory>
+ 
+ #supervisor
+ #2811
+ <Directory "/home/usuario/Aplicaciones/c-maestro">
+         AuthUserFile "/home/usuario/Aplicaciones/c-maestro/htclave"
+         AuthName "Acceso solo para Supervisor"
+         AuthType Basic
+         Require valid-user
+         AllowOverride All
+ </Directory>
+
+¡¡Importante!! Toda DNS que apunte a nuestro server y no esté atendido por un VirtualHost acaba en la página por defecto accesible vía red local.
+
+Conviene que, los htclave que contengan varios usuarios, no estén en el mismo directorio que se intenta proteger.
+
+Al directorio del C-Control, supervisor, que contiene unos CGI Bash, hay que indicarle en Directory Options +ExecCGI . Debe estar activado mod_cgi y además este script debe tener permisos de ejecución para ''world'' (o+x). Estos CGI deben ofrecer la cabecera correspondiente al tipo de archivo que sirven, tal y como exige un [http://www.apacheweek.com/features/http11 diálogo HTTP], como pueda ser "Content Type: text/html\n\n"
+
+Aumentar el límite de "spawning childs" en la directiva prefork de apache2.conf, por lo menos hasta 40.
+
+Nota: ¿por qué el .p12 que yo creo no incluye a la CA?
+
+== xfs write cache ==
+ hdparm -I /dev/sda
+ hdparm -W0 /dev/sda
+
+== Solución completa de correo ==
+Este equipo funciona como servidor de correo. Implementa dominios virtuales separados, administración de usuarios por base de datos SQL, control de spam y autenticación de envío. Los dominios virtuales separados nos evitan recibir correo no solicitado, ya que solo nos llega si tenemos una dirección válida. Esto está ligado a que las cuentas del sistema de correo no son cuentas del sistema, sino que toda la información de cuentas y direcciones se guarda en una base de datos SQL. La autenticación del destinatario evita que nuestro servidor sea un 'open relay' y el control de spam, reducido al separar cuentas, disminuye aún más con consultas a black-lists y un software que inspecciona todo el tráfico.
+
+ smtpd_banner = ESMTP Willkommen, ist es ein Vergnügen für mich empfängt dich benötigt
+ biff = no
+ append_dot_mydomain = no
+ relayhost =
+ inet_interfaces = all
+ myhostname = www
+ 
+ #para unix accounts
+ alias_maps = hash:/etc/aliases
+ home_mailbox = Maildir/
+ 
+ 
+ smtpd_sasl_auth_enable = yes
+ broken_sasl_auth_clients = yes
+ smtpd_recipient_restrictions = 
+			permit_sasl_authenticated
+			reject_unauth_destination
+			reject_rbl_client sbl.spamhaus.org
+			reject_rbl_client dnsbl.sorbs.net
+			reject_rbl_client list.dsbl.org
+ smtpd_sasl_local_domain = 
+ smtpd_sasl_security_options = noanonymous
+ #unknown_local_recipient_reject_code = 550
+ 
+ 
+ #para el resto
+ virtual_mailbox_domains = tiendasconexion.com, conexion.net, tiendasconexion.es, itmseguridad.com, itmcantabria.com, nostel.net, conexioncantabria.com, conselec.net, olas.ath.cx
+ #virtual_mailbox_domains = mysql:/etc/postfix/domains.mysql
+ virtual_mailbox_base = /var/mail/virtual
+ virtual_mailbox_maps = mysql:/etc/postfix/vmailbox.mysql
+ virtual_minimum_uid = 5000
+ virtual_uid_maps = static:5000
+ virtual_gid_maps = static:5000
+ virtual_alias_maps = mysql:/etc/postfix/valias.mysql
+ 
+ virtual_mailbox_limit = 50000000
+ #virtual_mailbox_limit_inbox = yes
+
+=== Webmail ===
+Incluir una interfaz web para el correo otorga movilidad y facilidad de uso. Usaremos Roundcube en detrimento del vetusto Squirrelmail.
+ # apt-get install roundcube-webmail php-pear
+Hacemos unos enlaces para que sea usable:
+ # ln -s /usr/share/roundcube-webmail /home/usuario/Paginas/tienda/correo
+ # ln -s /usr/share/roundcube-webmail /home/usuario/Aplicaciones/correo
+ajustar en SQL/mysql.initial.sql los nombres de las tablas a RC*
+
+en db.inc.php
+$rcmail_config['db_dsnw']='mysql://mail:kk@localhost/maildb';
+actualizar rcmail_config['db_table_*'] con el nombre de la tabla RC*.
+en la tabla RCusers, fijar el campo language como 'es' por defecto.
+
+en main.inc.php
+$rcmail_config['default_host']='localhost';
+$rcmail_config['smtp_server']='localhost';
+
+ajustar $_SESSION['user_lang'] = 'es'
+program/include/main.inc
+
+
+Sustituir el roundcube_logo.png de skins/default/images por uno propio.
+Ajustar el tamaño de la imagen en skins/default/includes/header.html, skins/default/templates/login.html, skins/default/templates/error.html para que no solape otras secciones.
+
+== Administración remota ==
+Instalar vnc4server. No funcionan otras versiones en x64.
+
+== Firewall ==
+Se usa iptables que viene en el sistema. Es similar al conocido ipfw de FreeBSD.
+
+iptables consta de 3 cadenas o grupos de acción, basados en el sentido del tráfico:
+*INPUT: tráfico entrante
+*OUTPUT: tráfico saliente
+*FORWARD: tráfico encaminado por nuestro equipo, que hace de router
+
+Las reglas en cada cadena se aplican en un ''first match wins basis''. La acción a tomar en último caso, que en ipfw se definía simplemente como la última regla de la cadena, en iptables se denomina ''política''.
+Esta política por defecto puede ser ACCEPT (aceptar paquete), DROP (descartarlo silenciosamente) o REJECT (descartarlo e informar vía ICMP al remitente).
+
+Primero borramos las reglas existentes:
+ iptables -F #flush, borra reglas de las cadenas
+ iptables -X #borra cadenas del usuario
+ iptables -Z #pone contadores a cero
+ iptables -t nat -F #borra la tabla nat
+
+A continuación definimos las nuestras:
+ iptables -A INPUT -i lo -j ACCEPT #permite todo el tráfico loopback
+ iptables -A INPUT -i eth0 -j ACCEPT #permite a toda la RPV
+ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT #stateful firewall
+ iptables -A INPUT -p tcp --dport 80 -j ACCEPT #permite 21,25,80,110,443 entrantes de cualquiera
+ iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 21 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 25 -j ACCEPT
+ iptables -A INPUT -p tcp --dport 110 -j ACCEPT
+ iptables -A INPUT -p tcp -s 81.45.215.48 --dport 5901 -j ACCEPT #permite VNC de unos pocos
+ iptables -P INPUT DROP #políticas por defecto
+ iptables -P FORWARD DROP
+
+Los parámetros no especificados serán tomados como ALL o ANY por defecto. Crear un firewall sensible al estado permite que, las conexiones entrantes como respuesta de las salientes, sean aceptadas. Dejamos pasar cualquier paquete cuya conexión ya se ha establecido (ESTABLISHED), o cuya conexión es nueva, pero está relacionada a una conexión ya establecida (RELATED).
+Consultamos nuestra tabla recién creada con iptables --list o iptables -nL INPUT. Probar su efectividad con nmap. Indicará si hay un servicio a la escucha (open), no lo hay (closed) o hay un firewall (filtered).
+
+Meterlo en un script de inicio para todos los runlevels.
+ # nano /etc/init.d/firewall.sh
+ # chmod +x /etc/init.d/firewall.sh
+ # update-rc.d firewall.sh defaults
+
+Después de configurar el firewall, el comando ftp dejará de funcionar. Conmutar a modo pasivo de transmisión.
+ ftp> passive
+En FreeBSD lo hacíamos mediante epsv4 off .
+* http://www.ignside.net/man/ftp/pasivo.php
+
+== Autologin ==
+Editar /etc/inittab para quitar consolas y hacer autologin en una de ellas:
+ 1:2345:respawn:/bin/login -f usuario >/dev/tty1 2>&1 </dev/tty1
+ #comentar el resto
+
+
+== FTP imprenta ==
+Instalar vsftpd. Configurar para:
+ local_enable=YES
+ write_enable=YES
+ local_umask=002
+Accederán mediante un usuario del sistema, pgc:europa . Su directorio home tiene de permisos 775, de tal modo que el usuario samba usuario:u tenga acceso completo. Crear un compartido:
+ [Imprenta]
+  create mask = 664
+  directory mask = 775
+  comment = Imprenta
+  path = /home/usuario/rotolitana
+  read only = no

@@ -1,0 +1,42 @@
+Las variables de sesión sirven a una aplicación web para almacenar datos temporalmente. La duración suele definirse hasta que se cierra el navegador o transcurre un tiempo.
+
+Cuando una app web quería almacenar datos del usuario, lo hacía en una cookie. El problema está en que esta cookie puede modificarse (ya que está en el cliente). La solución está en que la cookie con las variables está en el lado del servidor, y el cliente, la única cookie que recibe, es un hash o código identificativo de la cookie de servidor. De este modo, siendo el hash un valor muy alto y aleatorio, hace casi imposible que el cliente pueda ''elegir'' accidentalmente el hash de otra sesión abierta en ese momento (tal vez la del administrador de la app web).
+
+En las cookie o en las variables de sesión puede almacenarse cualquier objeto susceptible de ser serializado (convertida en un string).
+
+Gracias a sessview.php podremos leer el contenido de los archivos variable de sesión. Éstos se encuentran en /var/lib/php5/sess_HASH y sólo son accesibles por el usuario bajo el que corre el webserver.
+<pre>
+#!/usr/bin/php
+
+<?
+
+// Usar este método:
+
+//$a = file('php://stdin');
+//$a = explode(';',$a[0]);
+
+// O este:
+
+$h = fopen('php://stdin', 'r');
+while ( ($c = fgetc($h)) !== false) {$a .= $c;} //el clásico while( (c = getchar()) != EOF )
+fclose($h);
+$a = explode(';',$a);
+
+//
+
+array_pop($a);
+
+foreach ($a as $par) {
+        $elem = explode('|',$par);
+        $sesion[ $elem[0] ] = unserialize($elem[1]);
+}
+
+print_r($sesion);
+
+?>
+</pre>
+Ejemplos de uso:
+ # ./sessview.php< /var/lib/php5/sess_28631fa6b946937f62fdf8773147c20e
+ # cat /var/lib/php5/sess_28631fa6b946937f62fdf8773147c20e | ./sessview.php
+
+En el lado del cliente, una cookie es un archivo de texto con variables JSON. En el lado del servidor, una ''cookie'' de sesión es un archivo de texto con variables serializadas con serialize() .

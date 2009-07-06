@@ -1,0 +1,73 @@
+==Configurar camaras ip para las tiendas==
+
+Manual para la configuración de las cámaras ip situadas en las tiendas conexión
+
+Entramos en la cámara mediante su IP por defecto 192.168.0.99 Es importante poner tu equipo en el mismo rango que esta ip
+
+[[Imagen:Vivo1.png]]
+
+'''¡¡¡ importante!!! Siempre que se cambia algo en una pantalla GUARDARLO'''
+
+==SYSTEM==
+[[Imagen:Vivo2.png]]
+
+Turn off LED indicador (chequeado), desactiva los leds de la cámara.
+Ponemos la hora en automatica, asi se establece automáticamente.
+
+==SECURITY==
+Establecemos la contraseña para acceder a nuestra camara
+* USER: root
+* PASS : Orange;
+
+
+==NETWORK==
+En teoría es el  último paso que hacemos ya que se cambia la ip y habría que volver a entrar.
+
+[[Imagen:Vivo3.png]]
+ 
+Las ips siempre son 192.168.XXX.92 la mascara de subred 255.255.255.0
+lo demas igual que el equipo.
+ 
+====la configuración del FTP==== 
+servidor (nostel.net) o lo que es lo mismo 80.24.11.178
+* USR: camara
+* PASS: cocacola
+* FTP remote fólder “home/camara/xxxxx/”(aunque no existe el directorio la 1º vez que intente grabar algo lo crea ).
+ 
+[[Imagen:Vivo4.png]]
+
+
+==AUDIO/VIDEO==
+
+[[Imagen:Vivo5.png]]
+
+====AUDIO====
+Activar el silencio.
+
+====VIDEO====
+* TextOn video --> “lo que sea” aquí ponemos el nombre de la tienda.
+* Maximun frame rate --> 15
+* Fix quality --> médium
+* Activar FIP y MIRROR. 
+
+
+==CAMARA CONTROL==
+
+[[Imagen:Vivo6.png]]
+
+Desactivar Enable IR control.
+ 
+
+==MOTION DETECTION==
+
+Vamos a establecer un detector de movimiento.
+
+[[Imagen:Vivo7.png]]
+
+* marcamos la casilla Enable detection
+* New, y nos aparecera la ventana del detector de movimiento, 
+* Hacemos crecer esta ventana, el total de la pantalla
+* Y la configuración seria la siguiente:
+**Sensivity --> 94%.
+**Percentage--> 8%.
+**Windows name (Lo que tu quieras pero vamos a poner w).

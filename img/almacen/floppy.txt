@@ -1,0 +1,143 @@
+Amstrad     Shugart     Use 
+             2           8      Index 
+             4          10      Drive Select 0 
+             6          12      Drive Select 1 
+             8          16      Motor On 
+            10          18      Step Direction 
+            12          20      Step 
+            14          22      Write Data 
+            16          24      Write Gate 
+            18          26      Track 00 
+            20          28      Write Protect 
+            22          30      Read Data 
+            24          32      Side Select 
+            26          34      Ready 
+
+1 READY Input 
+2 GND - 
+3 SIDE SELECT Output 
+4 GND - 
+5 READ DATA Input 
+6 GND - 
+7 WRITE PROTECT Input 
+8 GND - 
+9 TRACK 0 Input 
+10 GND - 
+11 WRITE GATE Output 
+12 GND - 
+13 WRITE DATA Output 
+14 GND - 
+15 STEP Output 
+16 GND - 
+17 DIRECTION SELECT Output 
+18 GND - 
+19 MOTOR ON Output 
+20 GND - 
+21 N.C. - 
+22 GND - 
+23 DRIVE SELECT 1 Output 
+24 GND - 
+25 DRIVE SELECT 0 Output 
+26 GND - 
+27 INDEX Input 
+28 GND - 
+29 N.C. - 
+30 GND - 
+31 N.C. - 
+32 GND - 
+33 N.C. - 
+34 GND 
+
+A standard floppy drive connector contains 34-pin wholes we have listed the pins and the description of each pin below.
+
+PIN 1 Ground 
+PIN 2 -High density select DRVDEN0
+PIN 3 Ground 
+PIN 4 Unused NC
+PIN 5 Ground NC
+PIN 6 Unused DRVDEN1
+PIN 7 Ground 
+PIN 8 -Index IDX
+PIN 9 Ground 
+PIN 10 -Motor Enable A (0) MTR0
+PIN 11 Ground 
+PIN 12 -Drive Select B (1) DS1
+PIN 13 Ground 
+PIN 14 -Drive Select A (0) DS0
+PIN 15 Ground 
+PIN 16 -Motor Enable B (1) MTR1
+PIN 17 Ground 
+PIN 18 -Direction (Stepper Motor) 
+PIN 19 Ground 
+PIN 20 -Step Pulse 
+PIN 21 Ground 
+PIN 22 -Write Data 
+PIN 23 Ground 
+PIN 24 -Write Enable 
+PIN 25 Ground 
+PIN 26 -Track 0 
+PIN 27 Ground 
+PIN 28 -Write Protect 
+PIN 29 Ground 
+PIN 30 -Read Data 
+PIN 31 Ground 
+PIN 32 -Select Head 1 
+PIN 33 Ground 
+PIN 34 -disk change 
+
+"floppy connector pinout (for this floppy - 26pin only): 
+         1 VDD 14 /STEP 
+         2 /INDEX 15 GND 
+         3 VDD 16 /WRDATA 
+         4 DR0 17 GND 
+         5 VDD 18 /WGATE 
+         6 DISKCH 19 GND 
+         7 N/C 20 /TRK0 
+         8 N/C 21 GND 
+         9 N/C 22 /WP 
+        10 MTR0 23 GND 
+        11 N/C 24 /RDDATA 
+        12 DIR 25 GND 
+        13 N/C 26 /HDSEL " 
+
+ 1 - +5v 2 - INDEX 
+ 3 - +5v 4 - DS0(/HO/OP) Multiple options depend on jumper block 
+ 5 - +5v 6 - DS1(/DC/OP) 
+ 7 - NC 8 - DC(/RY/HO/DS2/OP) 
+ 9 - NC 10 - MOTOR ON 
+11 - OP(/HI/HO/RY) 12 - DIRECTION SELECT 
+13 - OP(/DC/RY) 14 - STEP 
+15 - 0v (Gnd) 16 - WRITE DATA 
+17 - 0v 18 - WRITE GATE 
+19 - 0v 20 - TRACK 00 
+21 - 0v 22 - WRITE PROTECT 
+23 - 0v 24 - READ DATA 
+25 - 0v 26 - SIDE ONE SELECT 
+
+
+1		5 Volts
+2		Index
+3		5 Volts
+4		Drive Select 0
+5		5 Volts
+6		Not connected
+7		Drive Select 1
+8		Ready
+9		Not connected
+10		Motor on
+11		Not connected
+12		Direction
+13		Ground
+14		Step
+15		Ground
+16		Write Data
+17		Ground
+18		Write Gate
+19		Ground
+20		Track 0
+21 		Ground
+22		Write Protect
+23		Ground
+24		Read Data
+25 		Ground
+26		Side 1 Select

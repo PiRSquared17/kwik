@@ -1,0 +1,121 @@
+El teléfono de asistencia es 902 211 203. Pagamos mantenimiento con INSTALACION Y MANTENIMIENTO DE TELECOMUNICACIONES (ITM).
+
+
+== Eurowin trabado en una tienda ==
+En el servidor conexión, abrir Administrador Terminal Server, y desconectar y cerrar la sesion de la tienda correspondiente. O en el propio PC, ir a administrador de tareas de terminal server.
+
+
+== Eurowin no pide el numero de ticket al hacer un vale ==
+Ir a Archivo, y la ultima opción, volver a poner 04 [enter] en el código de los vales.
+
+
+== Configurar impresora Eurowin en tienda ==
+Desde que se usa Win 2003 Server, hay tendencia a la desconfiguración de las impresoras de tickets.
+Abrir VNC con la IP de la tienda. Password: cocacola. 
+Si no se ha hecho antes...:
+# cerrar eurowin
+# abrir, meter clave
+# elegir caja
+A partir de ahora:
+# Archivo à Caja de venta
+# Editar. Fijarse en el código de la impresora.
+# Seleccionar impresora (icono carpetita).
+# Borrar
+# Meter el código de nuevo (el de la impresora). No pulsar sobre el icono de buscar, ya que muestra las impresoras de Eurowin. En su lugar, meter el código, y pulsar enter.
+# Mostrará una lista de las impresoras de Windows, por sesión. Elegir la adecuada. NO cambiar tamaño
+# Salir
+# Seleccionar Terminal Punto de Venta en el menú Venta.
+# Ir a último ticket
+# Imprimirle
+
+
+== Eurowin no imprime ciertas cosas ==
+Se imprimen albaranes pero no facturas, o algo así.
+Es por que el fichero correspondiente de la carpeta reports del cliente está en mal estado. Basta con copiarlo de otro ordenador en el que sí funcione.
+
+
+== Más dígitos para Eurowin ==
+Si hicera falta meter números más grandes en Eurowin, tenemos que ir al módulo Contabilidad, menú Archivo-> Monedas. Para el euro, editamos la máscara añadiendo los 9 y comas necesarios.
+
+
+== Renumerar índices en Eurowin ==
+Suele ocurrir si se borran albaranes o se aumenta el contador pero el registro existe.
+El error es como que ha perdido conectividad y se ha roto la unicidad de una tabla.
+En el servidor de conexión,
+C:\euroterm\menrepa.exe
+
+Indicesàejercicio 2005àincluir módulos
+
+Si esto no fuera suficiente, en utils.exe ir a Procesos, Comprobación de cabecera y líneas de albarán, ejecutar proceso, Albaranes de venta, lineas sin cabecera buscar borrar todos, y despues cabeceras sin linea borrar todos.
+
+Si tampoco, reindexar/reempaquetar (en el orden que venga) y hacer el paso 2.
+
+
+== Instalar Eurowin localmente ==
+# Metemos el CD de eurowin. Clic en cliente.
+# Tras su instalación, nuevo clic en cliente.
+# Ruta de acceso al servidor: \\serverconexion2\d\euroserv
+# Ejercicio: 200502 (01 si es ITM). No cambiar nada mas.
+# Aunque pida instalar más cosas, no hacerlo. Salir de la instalación.
+# Ir a C:\EUROTERM. Editar config.ini
+Añadir:
+ [GRUPO]
+ 01 para ITM y 02 para conexión
+ [EMPRESA]
+ 10 para ITM y 20 para conexión
+ [CAJATPV]
+ NO
+# Entrar en el equipo como administrador del dominio. Abrir el Eurowin y pulsar el boton actualizar.
+# Copiar carpeta C:/EUROTERM/REPORTS de otro ordenador, para que se impriman bien las facturas.
+
+
+== Crear nueva tienda en Eurowin conexión ==
+# pinchar en 2º fábrica (mantenimiento de empresas)
+# código ultimo+1
+# tipo empresa: normal
+# empresa stock 27 (cartes)
+# CIF: B37492113
+# nombre: EXTREMADURA
+# CP: 28011
+# MADRID, PASEO DE EXTREMADURA, 38
+# Almacen Extremadura. Ver lista.
+# Archivoàcajas de venta
+
+
+== Albarán en uso por Eurowin ==
+Se puede desbloquear por dos métodos:
+# Modificando la tabla:
+## Ir a \\serverconexion2\d\euroserv\util\util.exe
+## bases de datos à abrir carpeta aaaa02 siendo aaaa el año y 02 el grupo (conexión)
+## C_ALBVEN contenido
+## en la ventana de comandos: set filter to alltrim(numero)=’47’
+## borrar campo keycopy para que no esté en uso
+# Pulsando CTRL+SHIFT+D cuando se visualiza el albarán
+
+== Eurowin no arranca ==
+Conprobar que C:\EUROTERM\config.ini tiene las líneas apuntando al servidor. Borrar las DSN de sistema, es necesario loguearse en el equipo como administrador
+
+
+== Creditos pendientes Eurowin ==
+Se iba al modulo de ventas, creditos pendientes y despues se sumaban para que encajase el fondo de caja y tal o algo asin
+
+
+== Vales en Eurowin ==
+Se hacen poniendo cantidad –1. El programa lo identifica como un vale, el cual despues al cobrar se puede elegir el número.
+
+
+== Número de albarán en mal estado ==
+A veces un cierto número de albarán no funciona correctamente. La solución es que el programa obvie ese número de albarán, incrementando el contador en una unidad.
+Ir a Ventas, Archivos, Empresas, Contadores, editar y incrementar en 1 los albaranes.
+
+
+== Eurowin y Samba ==
+Eurowin puede ser ejecutado en un recurso o unidad de red Samba, ya que no ejecuta código alguno del servidor. Copiar la carpeta euroserv completa a la nueva ubicación. Se mantiene la licencia de instalación y los accesos concurrentes.
+*Las versiones 6.x (xbase) de Eurowin no requieren ningún cambio ni reconfiguración más alla de modificar el config.ini cliente con los valores nuevos.
+*A las versiones 8.x (sql) además, hay que modificarlas el archivo cfgcliserv.dbf (con un editor hexadecimal como xvi32) para especificar dónde está el servidor MySQL.
+ [CLISERVUSER]
+ root
+ [IPSERV]
+ 192.168.1.2
+
+Contaplus ejecuta código del servidor y no puede funcionar desde Samba shares.

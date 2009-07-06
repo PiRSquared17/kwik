@@ -1,0 +1,26 @@
+Facturamp antes
+
+
+version sqlite: un puesto o varios, en red con samba
+version mysql: para lans, server sql expuesto
+version webservices: para internet, server escondido
+
+
+el número propio empieza en 1 cada año!
+
+De momento no es autoincrementable:
+ CREATE TABLE `d_fact` (
+  `id` integer primary key autoincrement,
+  `id_c_fact` bigint(20) NOT NULL default '0',
+  `concepto` char(255) NOT NULL default '',
+  `unidades` int(11) NOT NULL default '0',
+  `precio` double NOT NULL default '0',
+  `importe` double NOT NULL default '0'
+ );
+
+
+== Contabilidad ==
+Conceptos:
+asiento: movimiento entre cuentas. en un asiento el balance es nulo. consecutivos.
+las T: o punteo de cuentas. mira el movimiento de cuentas y saca si hay saldo deudor o acreedor (D o H)
+balances: sumas y restas entre cuentas del mismo tipo.

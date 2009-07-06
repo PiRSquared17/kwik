@@ -1,0 +1,194 @@
+Vamos a escribir una sencilla calculadora de números, lo cual nos servirá de base para entender cómo funciona el framework y cómo se han separado las capas Controlador y Vista. Está inspirado en el [http://stripesframework.org/display/stripes/Quick+Start+Guide quickstart de Stripes] .
+
+Primero definimos la vista o plantilla, index.php :
+<pre>
+ <?
+ require_once 'striphpes-view.php';
+ ?>
+ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+ <html>
+  <head><title>Ejemplo</title></head>
+  <body>
+    <p>Striphpes Calculadora</p>
+ 
+    <form action="calculadora.action.php" method="post">
+        <table>
+            <tr>
+                <td>Numero 1:</td>
+                <td><?=F::text('num1','')?></td>
+            </tr>
+            <tr>
+                <td>Numero 2:</td>
+                <td><?=F::text('num2','')?></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="submit" name="suma" value="Sumar valores"/>                    
+                </td>
+            </tr>
+            <tr>
+                <td>Resultado:</td>
+                <td><?=$actionBean['resultado']?></td>
+            </tr>
+        </table>
+    </form>
+  </body>
+ </html>
+</pre>
+Realmente es una página HTML en la que se han cambiado algunas etiquetas del formulario por otras propias, que proporcionan el dinamismo y la comunicación con el framework. Es posible cargar ya la página desde nuestro navegador, por ejemplo http://localhost/ .
+
+== ActionBean ==
+Ahora vamos a hacer la parte dinámica, de tal modo que las acciones que genera esta vista tengan un efecto. Un ActionBean es el objeto que recibe los datos enviados en la petición y procesa lo que introdujo el usuario. Define tanto las propiedades del formulario como la lógica de proceso para el formulario. Por compararlo con Struts, el ActionBean es como el ActionForm y el DispatchAction unidos en una misma clase.
+
+Veamos en qué consiste el sencillo ActionBean que recibe la petición de la calculadora, calculadora.action.php :
+
+ <?
+ require_once 'striphpes-controller.php';
+ 
+ class MiAccion extends ActionBean {
+ 	var $num1;
+ 	var $num2;
+ 	var $resultado;
+ 
+ 	function suma() {
+ 		$this->resultado = $this->num1 + $this->num2;
+ 		return $this->ForwardResolution('index.php');
+ 	}
+ 
+ }
+ new MiAccion();
+ ?>
+
+Nuestra clase, hereda de ActionBean, y definimos tres propiedades, dos de las cuales $num1 y $num2 corresponden con el nombre de los campos del formulario y otra $resultado no.
+
+El framework se encarga de, que todas las propiedades cuyo nombre coincida con el de un campo del formulario, se recoja su valor y se incorpore al ActionBean. Finalizada la acción, el framework se encarga de "publicar" en $_POST estas mismas propiedades a la vista a la que nos encaminemos.
+
+La acción que se lleva a cabo está definida en la función suma. El nombre del método que se lanza lo determina el nombre del submit del formulario. Si el formulario no tiene un submit o no tiene nombre, el método que se lanza es execute. Si el framework no encuentra una función en nuestro ActionBean ni tampoco un método execute(), se detiene.
+
+Con la vista y la acción definidos, podemos probar la aplicación.
+
+== Validación ==
+Como extra, veamos el modo en el que el framework realiza validación de los datos del formulario.
+
+Sobrecargamos el método validation() en nuestro ActionBean. Un formulario que se envíe por POST pasa siempre por el método validation() antes de proceder a ejecutarse la acción indicada por el submit.
+ 	function validation() {
+ 		if ( is_numeric($this->num1) ) $this->SimpleError('num1','Especifique un valor.');
+ 	}
+En este método, realizamos las comprobaciones necesarias con los datos recogidos (en cuyo caso serán propiedades de la clase) o con GET o SESSION,... lo que nos parezca oportuno. Cuando una de las comprobaciones afecte a uno de los campos del formulario, preparamos un SimpleError. El ejemplo de arriba comprueba que num1 sea realmente un número.
+
+SimpleError indica el nombre del campo erróneo (que se iluminará en rojo), y una breve descripción que se indicará en el área de errores.
+
+Como se ha dicho, validation() sólo se ejecuta en formularios POST. Sin embargo, SimpleError no es exclusivo de validation(), de tal modo que podemos llamarlo desde cualquier método, para mostrar un error en el área de errores de la siguiente vista. Indicar que, el encadenamiento de acciones no borra el errorinfoarea de la anterior.
+
+== Formularios básicos ==
+El siguiente paso es programar una pequeña aplicación en la que se aplican las técnicas fundamentales BREAD (Listado, Edición, Borrado y Adición; también conocido como CRUD).
+Este tipo de aplicaciones son un frontend para la base de datos sobre la que se ofrece unas funcionalidades básica para el usuario.
+
+Contaremos en este caso con un elemento adicional: el Modelo. El modelo es una modelización o representación de la base de datos escrita en lenguaje de programación. Suponiendo que nuestra aplicación lleva un control de productos, el modelo sería el siguiente:
+ $productos = array(
+  'striphpesmodelname' => 'productos' ,
+  'id' => null ,
+  'nombre' => null ,
+  'precio' => null
+ );
+Lo escribimos en models.php . Como ayuda, podemos llamar a Model::generate que inspecciona la BBDD y vuelca en pantalla el modelo de todas las tablas.
+
+Este tipo de aplicaciones constan de dos formularios:
+#formulario para listar la colección de elementos, en el que se ofrece la posibilidad de establecer criterios de búsqueda, borrar elementos, editar o añadir nuevos.
+#formulario para edición o adición de un elemento concreto.
+Se puede decir que todas las aplicaciones de este tipo responden a este patrón.
+
+Y sobre estas vistas, ya se intuyen las acciones que realiza el usuario sobre ellas:
+#listar, borrar el elemento seleccionado, editar elemento seleccionado, añadir elemento.
+#añadir un elemento con los datos proporcionados, o modificar un elemento existente.
+
+=== Las vistas ===
+Los archivos HTML que definen estos formularios o vistas son index.php y formulario.php . Son PHP porque las etiquetas que interactúan con el framework no son ''etiquetas'' puramente, sino métodos generadores de etiquetas. Esto permite al framework saber qué elementos son ''activos'' (su contenido interactúa con el servidor) o qué elementos no lo son.
+
+index.php se encargará del listado de los productos.
+<pre>
+ <?
+ require_once $_SERVER['DOCUMENT_ROOT'].'/zonaprivada/recursos/lib/striphpes-view.php';
+ ?>
+ <?
+ print '<p><a href="lista.action.php">Actualiza lista</a></p>';
+ ?>
+ <table>
+ <tr>
+ <th>nombre</th>
+ <th>precio</th>
+ <th colspan="2"></th>
+ </tr>
+ <?
+ if ($actionBean['listado']) foreach ($actionBean['listado'] as $fila) {
+ print '<tr>';
+ print "<td>{$fila['nombre']}</td>";
+ print "<td>{$fila['precio']}</td>";
+ print "<td><a href=\"formulario.action.php?id={$fila['id']}\">Editar</a></td>";
+ print "<td><a href=\"lista.action.php?borrar&id={$fila['id']}\">Borrar</a></td>";
+ print '</tr>';
+ }
+ ?>
+ </table>
+ <?
+ print '<p><a href="formulario.action.php">Añadir nueva</a></p>';
+ ?>
+</pre>
+
+Y la vista para editar o añadir un elemento concreto es formulario.php :
+<pre>
+ <?
+ require_once $_SERVER['DOCUMENT_ROOT'].'/zonaprivada/recursos/lib/striphpes-view.php';
+ ?>
+ <?=F::errorinfoarea()?>
+ <form action="formulario.action.php" method="post">
+ <p>
+ <?=F::hidden('id','')?>
+ </p>
+ <p>
+ <?=F::label( 'Nombre:<br />' , F::text('nombre','') )?>
+ </p>
+ <p>
+ <?=F::label( 'Precio:<br />' , F::text('precio','') )?>
+ </p>
+ <p>
+ <input type="submit" class="button" name="reemplaza" value="<?=($actionBean['id']) ? 'Editar' : 'Añadir'?>" />
+ </p>
+ </form>
+ <a href="lista.action.php">Volver a listado</a>
+</pre>
+
+=== Añadir un campo ===
+Añadir un campo es realmente fácil y sencillo, lo que demuestra las ventajas del trabajo con el framework. Conceptualmente un campo nuevo supone añadirlo en 4 lugares lógicamente independientes:
+*un campo nuevo en la base de datos
+*por consiguiente, un cambio en el modelo que representa a esa tabla en la aplicación
+*añadir el campo en las vistas
+*añadir el campo en las acciones a las que llaman la vistas
+
+Se modifica la BBDD con Navicat o SQLYog para añadir el campo 'cantidad'. Regeneramos el modelo automáticamente o bien añadimos:
+  'cantidad' => null ,
+
+Ahora, añadimos el campo a la vista de listado, index.php :
+ print "<td>{$fila['cantidad']}</td>";
+
+Y en formulario.php :
+<pre>
+ <p>
+ <?=F::label( 'Cantidad:<br />' , F::text('cantidad','') )?>
+ </p>
+</pre>
+
+Finalmente, formulario.action.php, que recoge los campos del formulario.php, llevará una propiedad más correspondiente al campo:
+ 	var $nombre;
+lista.action.php no necesita saber nada de este campo, ya que no interactúa con él directamente.
+
+== Trabajo con archivos e imágenes ==
+Striphpes incorpora funciones que ayudan a trabajar con formularios que suben imágenes, desde el enfoque MVC.
+Un formulario.action.php tiene la propiedad $archivo, que recibe del input homónimo de formulario.php:
+ &lt;?=F::label( 'Archivo:&lt;br /&gt;' , F::fileupload('archivo','') )?&gt;
+
+En el método reemplaza() sólo tenemos que añadir al principio:
+ $this->archivo = guardar_imagen_escala($this->archivo, 40, 40);
+El resto, es como siempre: "instanciación" del modelo, copia del form al modelo, persistencia...
+
+Añadir un [[Php#Funci.C3.B3n_borrado_de_archivo|método extra]] al formulario.action.php, que permite el borrado del archivo.

@@ -1,0 +1,8 @@
+Simulaciones con GNU Octave =
+Octave es un sustituto de MATLAB libre.
+ # apt-get install octave gnuplot octave3.0-headers #headers para instalar funciones
+Instalar los paquetes que proveen las funciones necesarias descargados desde octave forge.
+ pkg install miscellaneous-1.0.7.tar.gz
+ pkg install optim-1.0.4.tar.gz
+ pkg install signal-1.0.8.tar.gz
+ pkg install communications-1.0.8.tar.gz

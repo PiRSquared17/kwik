@@ -1,0 +1,42 @@
+uno de los mayores problemas de una aplicación web es la interfaz gráfica de usuario
+tan restringida que proporciona HTML.
+en html, crear barras de menús es realmente tedioso.
+
+está previsto que el futuro que planea Microsoft, el mayor fabricante mundial,
+está orientado hacia XAML y .NET en su próximo Windows Vista.
+por qué esperar unos años cuando esas tecnologías existen ahora?
+XUL+apache+PHP es una combinación de tecnologías existentes dotada de poderosas características:
+- consume pocos recursos, en comparación con otras
+	java
+	mono+gtk#
+	.net
+- estándar, conocido por todos, no es propiedad de ninguna compañia. XAML y .NET está controlado por una única empresa
+
+- abierto, ni estas tecnologías ni el programa tienen trampa ni cartón.
+usted puede ver cómo funciona, o contratar a un programdor para que lo analice, y comprobar que el programa hace lo que se supone que debe hacer.
+puede usted asegurar que otros programas no recolectan información personal y la envian a una central?
+
+
+Problema:
+Agregar contenido que me arroja un XMLHttpRequest a alguna parte de una
+ventana en XUL
+
+Solucion:
+Utilizar innerHTML
+
+Metodo:
+Primero es habilitar a la ventana XUL para poder utilizar elementos de HTML,
+esto es agregando xmlns:html="http://www.w3.org/1999/xhtml" al tag <window>
+
+Segundo es crear un tag de iframe en el XUL
+<html:iframe id="mi_id"></html:iframe>
+
+Tercero es acceder a el desde JS
+document.getElementById("mi_id").contentDocument.body.innerHTML = "mi
+texto";
+
+Espero le sirva a alguien.
+
+
+http://slayeroffice.com/articles/innerHTML_alternatives/
+http://www.torresburriel.com/pipermail/xul_torresburriel.com/2006-April/

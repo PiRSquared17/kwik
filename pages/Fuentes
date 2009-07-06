@@ -1,0 +1,58 @@
+Básicamente hay dos subsistemas de fuentes para X:
+#las antiguas fuentes del núcleo X (X core fonts)
+#las nuevas fontconfig.
+
+X core fonts es el antiguo estándar de X, con FontPaths, ficheros fonts.dir / fonts.scale (mkfontdir, mkfontscale...), y muchas más complicaciones.
+Tiene problema con fuentes escalables, no puede tratar con grafías complejas (tales como Sirias o Indias), y no puede hacer suavizado (renderizado anti-aliasing o sub-pixel). Aparte son completamente inútiles a la hora de imprimir. Están en desuso y pocas aplicaciones importantes las emplean: xmms y emacs dos escasos ejemplos.
+
+La ruta se configura en /etc/xorg.conf, con líneas FontPath. Se pueden añadir mientras el servidor X funciona, con:
+ $ xset fp+ ~/.fonts
+ $ xset fp rehash
+Todas las fuentes seleccionables se ven con xfontsel y se listan con xlsfonts. Son del tipo -foundry-family-*-*-*-*-*-*-*-*-*-*-*-*-* . Otras fuentes, visibles con xfontsel, salen de añadir xfstt (un servidor de fuentes). Primero añadir FontPath "unix:/7101", y sincronizar con xfstt --sync. Después, poner xfstt en un script de inicio.
+
+
+El nuevo modo, fontconfig, es independiende de X y soluciona todas las carencias de las otras fuentes. Prácticamente todas las aplicaciones son ''Xft-aware'', usan este tipo de fuentes. Consiste en tres partes:
+*fontconfig que mantiene una base de datos de las fuentes
+*freetype que las renderiza
+*xft que conecta todo con X
+Se configura a través de ficheros XML:
+{| border="1"
+!OS
+!principal
+!solapado por...
+|-
+|Debian-like
+|/etc/fonts/fonts.conf
+|/etc/fonts/local.conf
+|-
+|FreeBSD
+|/usr/X11R6/etc/fonts/fonts.conf
+|/usr/X11R6/etc/fonts/local.conf
+|}
+Podemos añadir un fichero a la lista, pero es preferible emplear alguno de los ya definidos, como puede ser ~/.fonts . Añadir una fuente al sistema es tan simple como copiarla a ~/.fonts y reescanear el directorio:
+ $ fc-cache -fv ~/.fonts
+Las fuentes disponibles se ven con fc-list .
+
+Finalmente Defoma es específico de Debian, tiene unas limitaciones similares a X core fonts, y ante su escaso uso, lo ignoramos.
+
+*http://www.openbsd.org/faq/truetype.html#manualfonts
+*http://ask.slashdot.org/article.pl?sid=05/05/18/1520257
+*http://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/x-fonts.html
+
+== Fuentes en programas ==
+En xmms la fuente de los menús es horrible. Añadir un fichero ~/.gtkrc.mine (es leido por .gtkrc-1.2-gnome2) conteniendo:
+ style "user-font"
+ {
+ fontset="-adobe-helvetica-medium-r-normal-*-12-*-*-*-p-*-iso8859-1"
+ }
+ widget_class "*" style "user-font"
+
+En icewm usar las fuentes Xft en vez de las . Ojo a la capitalización en el nombre de la fuente.
+ QuickSwitchFontNameXft="Tahoma:size=8:bold"
+  en vez de
+ QuickSwitchFontName="-*-monospace-bold-r-*-*-*-120-*-*-*-*-*-*"
+
+== Fuentes Microsoft ==
+El paquete msttcorefonts incluye todas las fuentes habituales en Microsoft, para los dos subsistemas de fuentes. No incluye la Tahoma.
+
+Los archivos .fon de fuentes bitmap no se procesan. Hay que convertirlos con FontForge.

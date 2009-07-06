@@ -1,0 +1,17 @@
+/****************************************************************************//* reset de propiedades */* {margin: 0; padding: 0;}img, a {border: none;}a:hover {text-decoration: none;}*:focus {outline: none;}em {text-decoration: underline; font-style: normal;}kbd {border: outset; font-size: 160%; line-height: 3em; padding: 0.3em 0 0.3em 0.5em; font-weight: bold;}/* propociona altura a divs sin altura con contenido flotado *//* http://www.positioniseverything.net/easyclearing.html */.clearfix:after {content: "."; display: block; height: 0; clear: both; visibility: hidden;}.clearfix {display: inline-block;}* html .clearfix {height: 1%;}.clearfix {display: block;}legend, hr, caption, .skipnav {display: none !important;}ul {list-style: none;}/****************************************************************************//* estilo del documento */body {font: 12px verdana,sans-serif; background: #ccc url(/res/overlay-abstract.png) repeat-x;}
+
+#header {width: 70%; height: 120px; margin: 0 auto;}
+#contents {width: 70%; margin: 0 auto 40px; background: #fff; position: relative; padding: 20px;}
+    #contents a {color: #0489b7;}
+    #menu {position: fixed; top: -32px; right: 10px;}
+        #menu li {float: left; padding: 10px;}
+            #menu a, button {display: block; padding: 5px; line-height: 30px; background: url(/res/button.gif) repeat-x #000; border: 1px solid #e26000; color: #e26000; font-weight: bold; text-decoration: none;}
+            button {height: 42px;}
+    textarea {width: 100%; border: 1px solid #0489b7; background: #c2e0ea; color: #4b4742; margin: 15px 0;}
+    textarea:focus {border: 1px solid #c2e0ea; background: #fff; color: #000;}
+        a.filaa {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/res/ico_filaa.gif) no-repeat;}        a.filad {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/res/ico_filad.gif) no-repeat;}    pre {border: 1px dashed #c2e0ea; padding: 10px; color: #4b4742; margin: 10px 0;}
+    #jumpers {float: left; display: block; border: 1px solid #c2e0ea; padding: 10px; margin: 10px 0;}
+    ul.list {list-style: disc !important; padding-left: 20px;}
+    
+h1, h2, h3, h4, h5, h6 {color: #000; font-family: georgia,freeserif,serif; border-bottom: 1px solid #c2e0ea; margin: 15px 0;}
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {color: #000 !important;}

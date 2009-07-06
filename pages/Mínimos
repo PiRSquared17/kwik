@@ -1,0 +1,12 @@
+RAM ocupada "after boot":
+*BeOS 69MB
+*Linux 2.4 64MB
+*FreeBSD 6.0 70MB
+
+Índices de velocidad:
+*R10000/250 -> 10
+*PII/300 -> 11
+*Ultra5/300 -> 13
+
+P200 -> proxy, router, samba, lighttpd
+P400 -> mysql, cups, asterisk

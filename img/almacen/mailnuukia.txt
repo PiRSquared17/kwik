@@ -1,0 +1,43 @@
+Enviado el:  lunes, 02 de agosto de 2004 13:15:32 
+Asunto:  RE: DTR signal 
+ 
+ 
+Logic-level (TTL) RS-232 signals are active low, i.e DTR is marked as
+___
+DTR
+ 
+That means that when the port is not active,
+___
+DTR = 3 V or 5 V (Data Terminal is NOT Ready)
+ 
+and when the port is active,
+___
+DTR = 0 V (Data Terminal is Ready)
+ 
+ 
+RS-232 transceiver inverts the signals. So,
+ 
+DTR = ~+12 V when communication is active and
+DTR = ~-12 V when the port is idle.
+ 
+You can check that by measuring any PC COM port when the port is not used...!
+ 
+ 
+Using DTR and/or RTS to generate positive power supply is an industry standard practice.
+ 
+ 
+Note that on PCs the DTR (etc.) is controlled independently by the application software, i.e. the hardware or operating system does not change its state when the port is actived. The application must set it explicitly active if it wants to do it.
+ 
+If you are using a software that does not assert the DTR (for FBUS) or RTS (for MBUS), the NuukiaWorld's adapter cannot get power. However, Nokia's software set the signals correctly.
+ 
+ 
+ 
+-----Original Message-----
+Sent: Thursday 2004-07-15 22:50
+To: www@nuukiaworld.cjb.net
+Subject: DTR signal
+
+
+hello,
+before all i like to say this is not a "hey it doesn't work" email. i understand your design and this afternoon i've built one. i started the tests but something doesn't work. and later i noticed that the DTR pin where you get the positive power supply it's negative. yes, the RS-232 standard says that DTR signal is put on "logic 1" when starting communication. and the voltage levels are -12 for "1" an +12 for "0" , so you can't get +12 from DTR because it's "1". well, what do you think? maybe we can solve this matter. please answer. i'm thinking on putting a external power supply, tomorrow.
+i wait for your answer, thanks in advance!

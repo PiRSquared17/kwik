@@ -1,0 +1,15 @@
+Es un lenguaje de descripción de interfaces de usuario basado en XML. Viene a llenar el vacío o carencias de las aplicaciones HTML a la hora de recrear interfaces gráficas de usuario (GUI), para lo cual no fueron diseñadas.
+<pre>
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window
+    id="un-identificador-para-referenciarlo-por-scripts"
+    title="El Título"
+    orient="horizontal"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+
+</window>
+</pre>
+http://www-128.ibm.com/developerworks/web/library/wa-appmozx/

@@ -1,0 +1,44 @@
+Tras instalar un sistema operativo, cambio unos pocos archivos a mi gusto.
+
+== FreeBSD ==
+*/boot/loader.conf
+ autoboot_delay="0" o autoboot_delay="1"
+ beastie_disable="YES" o loader_logo="beastie"
+ snd_sbc_load="YES"
+
+*.cshrc
+ bindkey "^?" delete-char # a veces es ^[[3~
+ bindkey "^I" complete-word-fwd # TAB autocompletado cíclico
+ alias ll ls -lhA
+ alias ls ls -G
+ set prompt="[%n@%m] %/# "
+
+*/etc/ttys
+ getty Pc por autologin en ttyd0
+*/etc/gettytab
+ al=root
+
+*rm /etc/motd
+
+== Debian-like ==
+*/etc/inputrc
+ "\e[A": history-search-backward
+ "\e[B": history-search-forward
+ set completion-ignore-case On
+ "\t": menu-complete
+ #equivalente a TAB: menu-complete
+ "\C-a": complete
+*/etc/bash.bashrc
+ alias ls="ls --color=auto"
+ alias ll="ls -lha"
+ alias grep="grep --color"
+ # descomentar las 3 lineas del if del completado
+
+== Windows ==
+*barra de idioma
+*informe de errores
+*hardware: windows update, pedir firma
+*menu inicio clásico
+*ocultar subrayado para alt
+*inicio rápido
+*asistente de limpieza de escritorio a los 60 días

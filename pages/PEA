@@ -1,0 +1,74 @@
+PEA es un acrónimo por Postfix Easy Admin . Está inspirado en PEXA (Postfix Easy XUL Admin), y a su vez en Sendmadmin, pero sin las limitaciones de éstos.
+
+La arquitectura es completamente diferente. PEA es un programa en toda regla, y no una aplicación web pura. Esta idea se desarrolla así puesto que el paso de Sendmadmin a PEXA no satisfizo las demandas en cuanto a la calidad en la interfaz de usuario (siempre pobre en aplicaciones web). Además el tiempo de desarrollo de PEXA fue prohibitivamente alto. Se necesitaba un lenguaje mas rápido y fácil de mantener.
+
+PEA es un programa de escritorio con aspecto nativo en toda plataforma wxPython, que se comunica con el servidor de correo para realizar las tareas administrativas (borrar usuario, etc...). El servidor ofrece una serie de servicios web sobre los que hacemos peticiones que afectan a Postfix.
+
+== Configurando lighttpd para ejecutar los webservices ==
+Los CGIs pueden ejecutarse bajo mod_cgi o fastcgi, a nuestra elección. Veamos cómo configurar CGIs en PHP (en Python o Bash tan sólo cambirían las extensiones a .sh , .cgi y .py y el intérprete a /bin/sh y /usr/bin/python ).
+ # lighty-enable-mod
+ # nano /etc/lighttpd/conf-enabled/10-cgi.conf
+ #static-file.exclude-extensions = ( ".py") #innecesaria
+ cgi.assign      = (
+        ".php"  => "/usr/bin/php"
+ )
+Con fastcgi sería:
+ fastcgi.server             = ( ".php" =>
+                               ( "localhost" =>
+                                 (
+                                   "socket" => "/tmp/php-fastcgi.socket",
+                                   "bin-path" => "/usr/local/bin/php-cgi"
+                                 )
+                               )
+                            )
+Fastcgi es más rápido porque no lanza una instancia del intérprete en cada petición de página. Utiliza una técnica similar a apache, precargando un cierto número de intérpretes en memoria. Esto tiene como consecuencia un consumo de memoria fijo. No es aconsejable en casos en los que el webserver vaya a recibir pocas consultas. Para nuestra situación, cgi clásico.
+PHP, al contrario que los demás intérpretes, no precisa que indiquemos explícitamente el Content-type en la respuesta.
+
+Se recomienda que los servicios estén en un directorio protegido por mod_auth:
+ # lighty-enable-mod
+ # nano /etc/lighttpd/conf-enabled/10-auth.conf
+ server.modules                += ( "mod_auth" )
+ 
+ auth.backend                 = "htpasswd"
+ auth.backend.htpasswd.userfile  = "/var/serv/htclave"
+ 
+ auth.require                 = ( "/" =>
+                                (
+                                 "method"  => "basic",
+                                 "realm"   => "Access restricted",
+                                 "require" => "user=miguel"
+                               ))
+
+Hay tres tipos de autenticación, en función del modo en que viajan o se almacenan las contraseñas.
+{| border="1"
+!auth.backend
+!auth.require.method
+!qué sucede
+|-
+|plain
+|basic
+|user y pass viajan en texto plano y se comparan con un archivo de texto plano en el server
+|-
+|htpasswd
+|basic
+|user y pass viajan en texto plano y se comparan con un archivo digest MD5 especial, específico de Apache 
+|-
+|htdigest
+|digest
+|user y pass viajan en un digest y se comparan con un digest como el anterior
+|}
+Ejemplos para el campo "require":
+ require valid-user
+ require user=|group= host=
+
+Adicionalmente, podría ir todo bajo SSL (https) con certificado autofirmado:
+ $ openssl req -new -x509 -keyout server.pem -out server.pem -days 365 -nodes
+ 
+ ssl.engine    = "enable"
+ ssl.pemfile   = "/etc/lighttpd/ssl/server.pem"
+Para un super nivel de paranoia, montar una RPV basada en IPSec.
+
+== Acerca de webservices ==
+Gracias a esta arquitectura se descarga el servidor: parte de la potencia de CPU se libera al ser el cliente el encargado de las tareas de visualización.
+Un servidor en este caso no tiene por qué ser un ordenador muy potente, sino un equipo que tiene una función centralizadora diferente del resto de equipos de la red, no implicando en absoluto más potencia. El necesitar más potencia debe de ser una consecuencia del desempeño, no al revés: un hardware adecuado a la carga. Los workstations son muy potentes hoy día, y paradógicamente se tiende más a aplicaciones web.
+Se puede crear un paquete .deb con los servicios web y otro con el programa, con sus respectivas dependencias.

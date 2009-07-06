@@ -1,0 +1,12 @@
+apt-get clean (borra descargados de /var/cache/apt/archives)
+apt-get remove -purge xxx
+stty sane
+strace xxx
+update_alternatives
+dpkg -s xxx pkg_info -r
+xkeyboard-config
+xkbutils
+
+xxd
+write
+xorg.cfg "1024x768_60" fuerza una frecuencia a ese modo

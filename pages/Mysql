@@ -1,0 +1,93 @@
+== Características ==
+*índices (indexes) - aceleran búsquedas si el campo índice es parte del where
+*clave externa (foreign key) - conocido como integridad referencial, relaciona unas tablas con otras. Sólo activo con motor InnoDB. Se ve mediante ''show innodb status;'' o ''show create table kk;'' . Como impide inserts si no se satisface la FK, puede dar problemas restaurando backups. Su interés reseñable está en el borrado en cascada: borrando de la tabla padre se borran registros de la tabla hija. La FK se ha declarado en la tabla hija, y ambas deben ser InnoDB. http://dev.mysql.com/doc/refman/5.0/es/ansi-diff-foreign-keys.html
+*disparador (trigger) - desencadena una acción antes o después de un insert, update o delete
+
+
+== Selección de registros ==
+
+condición: puede ser una o varias, separadas por AND o OR. La condición es:
+	campo operador 'valor'
+		siendo operador >,<,=,!=,LIKE . LIKE permite usar el comodín % en cualquier punto del valor
+	isnull(campo)
+		se pone en vez de campo=null (esto no existe)
+
+SELECT: devuelve filas (rows) que satisfacen una condicion. Ej:
+ SELECT * FROM tabla; --todas las filas de la tabla
+ SELECT * FROM tabla WHERE 1; --todas las filas de la tabla
+ SELECT * FROM tabla WHERE a='kk'; --las filas que el campo a es kk
+ SELECT * FROM tabla WHERE a='kk' FOR UPDATE; --las filas que el campo a es kk, y las bloquea 
+ SELECT campo1 FROM tabla; --todas las filas de la tabla, pero sólo el campo especificado
+ SELECT campo1,campo2 FROM tabla; --todas las filas de la tabla, sólo los campos especificados
+ SELECT * FROM tabla WHERE condición; --todas las filas de la tabla que satisfacen condición
+ SELECT COUNT(*) FROM tabla; --un campo COUNT(*) con el numero de filas que satisfacen condición
+ SELECT * FROM tabla1,tabla2 WHERE tabla1.campo=tabla2.campo; --produce una tabla mezcla de las dos unidas por el campo especificado (INNER JOIN)
+ SELECT COUNT(*) AS numero FROM tabla; --un campo numero que contiene el COUNT(*)
+		Todas estas peticiones (query) se pueden agrupar u ordenar por campos. Ej:
+			...GROUP BY campo1
+			...GROUP BY campo1 HAVING --es el where del group
+			...ORDER BY campo1
+			...ORDER BY campo1,campo2 DESC
+ SELECT DISTINCT --parecido a GROUP BY, devuelve registros únicos
+
+ SELECT * FROM tabla INTO OUTFILE 'path' FIELDS TERMINATED BY ','; --exporta a CSV
+
+=== Uniones (joins) ===
+inner
+el join de siempre, que es
+select * from persona, domicilio where persona.idpersona = domicilio.idpersona
+select * from persona inner join domicilio on persona.idpersona = domicilio.idpersona
+
+left join, que devuelve resultados incluso cuando no hay registro
+    $sql="SELECT
+    productos_categorias.nombreES as nES, productos_categorias.nombreEN as nEN,
+    productos_categorias.descripcionES as dES, productos_categorias.descripcionEN as dEN, productos.*
+    FROM
+    productos_categorias LEFT JOIN productos
+    ON 
+    productos.id_categoria=productos_categorias.id
+    WHERE
+    productos_categorias.id='{$_GET['id']}'
+    ORDER BY
+    productos.orden";
+
+*http://www.wellho.net/mouth/158_MySQL-LEFT-JOIN-and-RIGHT-JOIN-INNER-JOIN-and-OUTER-JOIN.html
+
+=== Subselects ===
+queremos un select que filtre por filas de una tabla, no sólo por campos
+id IN (SELECT id_vehiculo FROM vehiculos_extras WHERE id_extra='$e') AND
+por cada cosa
+
+=== Vistas ===
+queremos hacer un select que tiene un campo el cual no existe en la tabla y su valor es el número de filas de otra tabla.
+CREATE VIEW rrhh_num_candidatos(id_rrhh,num) AS SELECT id_rrhh, count( * ) AS num FROM rrhh_candidatos GROUP BY id_rrhh
+luego hacemos el join
+SELECT rrhh.*,sede.nombreES AS sede,rrhh_num_candidatos.num
+        FROM rrhh
+        LEFT JOIN rrhh_num_candidatos ON rrhh.id = rrhh_num_candidatos.id_rrhh
+        LEFT JOIN sede ON rrhh.id_sede = sede.id
+
+== Modificaciones ==
+UPDATE: actualiza filas de la base de datos que satisfacen la condición. Ej:
+ UPDATE tabla SET campo1='valor'[,campo2='valor'] WHERE condición
+
+INSERT: inserta una fila en una tabla. Ej:
+ INSERT INTO tabla (campo1,campo2) VALUES ('valor','valor') :-: inserta valores a los campos
+ INSERT INTO tabla VALUES ('valor','valor') :-: inserta valores a cada campo por orden
+
+ REPLACE INTO kktabla1 SELECT tabla1.* FROM tabla1,kk WHERE tabla1.c0=kk.altdni :-: inserta en kktabla1 los valores de tabla1 que coinciden en un campo con la tabla kk. REPLACE actualiza valores en los que se repita la clave primaria al hacer INSERT.
+
+ SELECT LAST_INSERT_ID() :-: el valor de primery key del último INSERT de la conexión en curso
+
+== Borrado ==
+DELETE: borra filas que satisfacen la condición. Ej:
+ DELETE FROM tabla WHERE condición
+
+== Estructuras de las tablas ==
+ CREATE TABLE tabla2 AS SELECT * FROM tabla1 GROUP BY campo :-: hace una tabla a partir de otra, eliminando las entradas duplicadas (útil antes de designar una primary key)
+ SELECT 'algo' AS variable :-: devuelve el valor indicado en la variable
+ ALTER TABLE tabla MODIFY campo INT UNSIGNED NOT NULL AUTOINCREMENT, ADD PRIMARY KEY (campo) :-: cambia un campo de la tabla a int y lo convierte en clave
+ ALTER TABLE reparaciones ALTER pendiente SET DEFAULT '' :-: cambia el valor por defecto
+ ALTER TABLE duplicados ADD estado CHAR(1) NOT NULL DEFAULT 'P' :-: añade un campo
+
+ ALTER TABLE tabla AUTO_INCREMENT=1 :-: resetea el contador de la clave primaria

@@ -1,0 +1,330 @@
+== Consideraciones previas ==
+Este documento cubre la configuración de un ordenador como filtro web para la red de NOSteL, bajo un sistema operativo FreeBSD 6.0-RELEASE .
+
+La red de NOSteL forma parte de la red de la empresa, 192.168.1.0/24 y usa la misma puerta de enlace 192.168.1.101. Es un dominio Windows en el que se comparten archivos e impresoras constantemente.
+
+El equipo es un ordenador de pobres recursos:
+* CPU P120 MHz
+* 32 MB RAM 
+* 4 GB HDD
+* 2 tarjetas de red Realtek 8139, rl0 y rl1
+* Sin tarjeta gráfica. Se instala en un PC más potente y luego se cambia el disco duro.
+
+Hacemos una instalación tipo [X]Developer, configurando el disco duro automáticamente. Instalamos los ports.
+
+Todo el tráfico de NOSteL sale por este ordenador. Hace de proxy y filtra el paso de determinados dominios web. La máquina ha de estar configurada como gateway, con dos tarjetas de red, uniendo los dos switches. El filtrado cabe llevarse a cabo por estos métodos:
+*con un servidor DNS que resuelve el dominio a ciertos dominios, para ciertos equipos. Para el resto, no bloqueado, hace de simple forwarder. Impide navegar completamente, cuando sólo queremos restringir unas direcciones. Saltable si el equipo usa otro DNS.
+*con ipfw, estableciendo unos filtros a un rango de máquinas. Para el resto, deja paso libre. Filtra direcciones, no por dominios, y habría que actualizar la lista por si cambia una IP.
+*con squid, un proxy-caché, y squidGuard, un filtro web.
+
+Squid permite hacer caché de páginas visitadas, incrementando la velocidad de acceso a páginas (estáticas fundamentalmente), a costa de memoria y espacio en disco del equipo encargado de proxy.
+También permite no hacer caché, y establecer solamente unas reglas de proxy o filtrado, en el puerto 80. 
+
+Vamos a emplear la opción de squid, por ser la más ad-hoc. El ordenador hará de router/proxy para la subred. NOSteL queda disgregado de la red principal, estando ahora como un segmento aparte, 192.168.0.0/24.
+
+Los equipos de la administración de la plataforma llevan IP fija de la .1 a la .19, sin restricción en el tráfico. Los equipos de teleoperadora, los cuales tienen mucha movilidad, reciben su IP por DHCP de la .20 a la .254 .
+
+
+== Instalación y configuración ==
+Comenzamos la instalación desde una shell:
+
+ # cd /usr/ports/www/squidGuard
+ # make SQUID_UID=squid SQUID_GID=squid #muy importante
+ # make install clean
+ # cd /usr/ports/www/squid
+ # make config
+
+Marcar las siguientes opciones:
+ [X]SQUID_DELAY_POOLS
+ [X]SQUID_IPFILTER
+Que corresponden con las siguientes opciones de make:
+ --enable-delay-pools
+ --enable-ipf-transparent
+ipf_trasparent permite que el proxy sea transparente de cara al navegador del usuario, y filtre el puerto 80 sin ser advertido. Esto es lo mismo que un Interception Proxy: hace creer al navegador del cliente que está hablando con el servidor. No es posible montar un proxy transparente sin sacar squid ni squidGuard desde ports.
+
+Ahora compilamos e instalamos:
+ # make
+ # make install clean
+ # rehash
+
+Creamos la estructura de la caché, que aunque no sea usada, debe crearse.
+ # squid -z
+
+Editamos /usr/local/etc/squid/squid.conf :
+
+ visible_hostname enlace
+ 
+ http_port 3128
+ httpd_accel_host virtual
+ httpd_accel_port 80
+ httpd_accel_uses_host_header on
+ 
+ cache_mgr info@tiendasconexion.com
+ cache_effective_user squid
+ cache_effective_group squid
+ cache_access_log /usr/local/squid/logs/access.log
+ cache_store_log /usr/local/squid/logs/store.log
+ cache_log /usr/local/squid/logs/cache.log
+ emulate_httpd_log on
+ 
+ redirect_program /usr/local/bin/squidGuard -c /usr/local/etc/squid/squidGuard.conf
+ #redirect_program /usr/local/squid/kk.pl
+ redirect_children 6
+ 
+ acl all src 0/0
+ acl localhost src 127.0.0.1/255.255.255.255
+ acl nostel src 192.168.0.0/255.255.255.0
+ 
+ http_access allow localhost
+ http_access allow nostel
+ http_access deny all
+ 
+ no_cache deny all
+ 
+ #delay_pools 2
+ 
+ request_body_max_size 2048 KB
+ 
+ logfile_rotate 7
+
+Squid debe iniciarse automáticamente con el sistema.
+Poner squid_enable="YES" en /etc/rc.conf o bien hacer este script que sustituye a /usr/local/etc/rc.d/squid.conf :
+ #!/bin/sh
+ 
+ echo -n ' Squid proxy. '
+ 
+ case "$1" in
+ start)
+         /usr/local/sbin/squid -D
+         ;;
+ stop)
+         /usr/local/sbin/squid -k shutdown
+         ;;
+ restart)
+         /usr/local/sbin/squid -k reconfigure
+         ;;
+ *)
+         echo "Modo de empleo: `basename $0` {start|stop|restart}"
+         ;;
+         esac
+ 
+
+Squid ya está completamente configurado. Podemos probar errores en el fichero mediante las siguientes alternativas:
+ # squid -k parse #comprueba la sintaxis de la configuración
+ # squid -NCd1 #funcionando en modo debug
+ # cat /usr/local/squid/logs/cache.log #log completo de squid
+
+Es el turno de configurar SquidGuard.
+ # ee /usr/local/etc/squid/squidGuard.conf
+
+Editamos la configuración:
+ dbhome /var/db/squidGuard
+ logdir /usr/local/squid/logs
+ 
+ src sinrestriccion {
+         ip      192.168.0.1-192.168.0.19
+                 #jefas y primer bloque de operadoras
+ }
+ 
+ dest websoperadoras {
+      #esto un identificador, no tiene por qué coincidir con el archivo
+         #log             websoperadoras
+         domainlist      websoperadoras/domains
+                         #el fichero de dominios
+         #urllist         websoperadoras/urls
+ }
+ 
+ acl {
+         sinrestriccion {
+                 pass all
+                      #al grupo sinrestriccion le permito ver todo
+         }
+         default {
+                 pass websoperadoras none
+                      #al resto solo permito las paginas del indicador websoperadoras
+                 #pass !gambling !warez all
+                 redirect http://192.168.0.201
+         }
+ }
+
+Una vez hecho esto, debemos crear una base de datos de los dominios que queremos que no se visiten o se visiten. 
+ # cd /var/db/squidGuard
+ # mkdir websoperadoras
+ # ee websoperadoras/domains
+
+El contenido del fichero es una simple lista de dominios:
+ 192.168.1.4
+ orange.es
+ paginasamarillas.es
+ google.es
+ google.com
+ macromedia.com
+ tiendasconexion.com
+ qdq.com
+ ojdinteractiva.com
+
+Finalmente, nos aseguramos que tanto /var/db/squidGuard/ como todos los subdirectorios y archivos cumplen la siguiente norma:
+ # chown squid:squid *
+ # chmod 660 *
+Es muy importante. Si SquidGuard no pudiera iniciarse correctamente entra en emergency mode, que consiste en dejar paso a todo. Comprobarlo con ''cat /usr/local/squid/logs/cache.log'' o en /var/log/squidGuard.log .
+
+Crearemos los ficheros de base de datos con el comando (puede hacerse desde fuera del directorio):
+ # squidGuard -C websoperadoras/domains
+Requiere que squid esté funcionando. Comprobar que se creó el fichero domains.db .
+
+Instalo además un servidor web ligero, encargado exclusivamente de servir la página de rechazo. thttpd sirve muy bien para este propósito, siendo su configuración realmente simple.
+ # pkg_add -r thttpd
+ # cp /usr/local/etc/thttpd.conf.sample /usr/local/etc/thttpd.conf
+
+Crear una página web index.html con un mensaje de advertencia:
+<pre>
+ <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+ <HTML><HEAD>
+ <TITLE>Dominio no autorizado</TITLE>
+ </HEAD><BODY>
+ <H1>Dominio no autorizado</H1>
+ No le está permitido ver la página web que ha solicitado.<P>
+ <HR>
+ <ADDRESS>Proxy SquidGuard/1.2 en enlace</ADDRESS>
+ </BODY></HTML>
+</pre>
+
+Hemos finalizado ya la instalación de todos los servicios. Editamos /etc/rc.conf :
+ defaultrouter="192.168.1.101"
+ gateway_enable="YES"
+ hostname="enlace"
+ ifconfig_rl0="inet 192.168.1.200  netmask 255.255.255.0"
+ ifconfig_rl1="inet 192.168.0.1  netmask 0xffffff00"
+ keymap="spanish.iso.acc"
+ sshd_enable="YES"
+ 
+ ipfilter_enable="YES"
+ ipnat_enable="YES"
+ ipmon_enable="YES"
+ ipfs_enable="YES"
+ 
+ thttpd_enable="YES"
+ 
+ sendmail_enable="NONE"
+ dhcpd_enable="YES"
+
+Edito /etc/ipnat.rules :
+
+ map rl0 192.168.0.0/24 -> 192.168.1.200/32 #0/32 también
+ rdr rl1 0/0 port 80 -> 127.0.0.1 port 3128 tcp
+rl0 es la interfaz externa, y a continuación se indica el rango interno. rl1 es la interfaz interna.
+
+Establezco el equipo como puerta de enlace.
+Y todas las peticiones del puerto 80 recibidas a través de rl1, se encaminan al 3128 local, que es el que escucha squid.
+Podría haberse empleado ipfw y natd, pero exige preparar un kernel.
+
+Finalmente reiniciamos para tenerlo todo listo y fresco
+ # reboot
+
+
+== Mantenimiento ==
+Se ha instalado un acceso ssh al equipo, para mantenimiento, con PermitRootLogin yes. Las tareas más comunes que podemos realizar de mantenimiento son:
+
+
+=== Actualizar la base de datos ===
+1- Modificar el archivo /var/db/squidGuard/websoperadoras/domains
+ # cd /var/db/squidGuard/websoperadoras
+ # ee domains 
+2- Reconstruir la base de datos
+ # squidGuard -C domains
+3- Aplicar los cambios a squidGuard
+ # killall -HUP squidGuard
+ # exit
+
+
+=== Cambiar algún parámetro de squid y aplicar los cambios ===
+Hay dos modos:
+ # squid -k reconfigure
+o
+ # killall -HUP squid
+
+
+== Líneas futuras ==
+Quedan unas preguntas en el aire:
+*¿Sería posible el filtrado con bridging en las interfaces, en vez de NAT, para seguir trabajando en el dominio Windows? SI
+*¿Sería posible cambiar la máscara de subred en los equipos apartados para que ‘saltasen’ a la otra red? NO
+*¿Sería posible estudiar otras máscaras de subred menos comunes, haciendo exóticas combinaciones AND? NO
+
+Si opto por ipfw y natd, hay que hacer un kernel específico con:
+ options IPFIREWALL
+ options IPFIREWALL_VERBOSE
+ options IPFIREWALL_FORWARD
+ options IPFIREWALL_DEFAULT_TO_ACCEPT
+ options IPDIVERT
+ options BRIDGE
+
+Editar /etc/rc.conf :
+ gateway_enable="YES"
+ router_enable="YES"
+ natd_program=/sbin/natd
+ natd_enable="YES"
+ natd_interface=rl0
+ firewall_enable="YES"
+ firewall_type=/etc/firewall.reglas
+ firewall_script=/etc/rc.firewall
+ squid_enable="YES"
+
+Editar /etc/firewall.reglas :
+ -f flush
+ add divert natd all from any to any via rl0
+ add fwd 192.168.0.254,3128 tcp from not me to any 80
+ add deny log tcp from any yo any in tcpflags syn,fin
+ add check-state
+ add allow tcp from any to any out keep-state
+ add allow all from any to any
+
+== Líneas futuras ==
+Quedan unas preguntas en el aire:
+*¿Sería posible el filtrado con bridging en las interfaces, en vez de NAT? Posibilitaría seguir trabajando en el dominio Windows.
+*¿Sería posible cambiar la máscara de subred en los equipos apartados para que ‘saltasen’ a la otra red? NO
+*¿Sería posible estudiar otras máscaras de subred menos comunes, haciendo exóticas combinaciones AND? NO
+
+Si opto por ipfw y natd, hay que hacer un kernel específico con:
+ options IPFIREWALL
+ options IPFIREWALL_VERBOSE
+ options IPFIREWALL_FORWARD
+ options IPFIREWALL_DEFAULT_TO_ACCEPT
+ options IPDIVERT
+ options BRIDGE
+
+Editar /etc/rc.conf :
+ gateway_enable="YES"
+ router_enable="YES"
+ natd_program=/sbin/natd
+ natd_enable="YES"
+ natd_interface=rl0
+ firewall_enable="YES"
+ firewall_type=/etc/firewall.reglas
+ firewall_script=/etc/rc.firewall
+ squid_enable="YES"
+
+Editar /etc/firewall.reglas :
+ -f flush
+ add divert natd all from any to any via rl0
+ add fwd 192.168.0.254,3128 tcp from not me to any 80
+ add deny log tcp from any yo any in tcpflags syn,fin
+ add check-state
+ add allow tcp from any to any out keep-state
+ add allow all from any to any
+
+
+== Documentación ==
+Las páginas de los daemons son:
+* http://www.squid-cache.org/
+* http://www.squidguard.com/
+
+Otras alternativas son implementar un servidor SOCKS como Dante (http://www.inet.no/dante/) para hacer proxy en más puertos, y usar DansGuardian (http://dansguardian.org) en vez de SquidGuard.
+
+Casos concretos de implementación y problemas:
+*http://ezine.daemonnews.org/200209/squid.html
+*http://www.squid-cache.org/Doc/FAQ/FAQ-4.html#ss4.18
+*http://squid.visolve.com/squid/squid24s1/contents.htm
+*/usr/local/share/doc/squidGuard/
+*http://www.squidguard.org/config/#Lists
+*http://www.squidguard.org/lists/archive/2000-04/0029.html
+*http://lists.debian.org/debian-user-spanish/2001/11/msg00932.html

@@ -1,0 +1,25 @@
+Marcar en la instalación:
+* Utilizar una cuenta para cada servicio.
+* Iniciar automáticamente el servicio.
+* Utilizar la cuenta del sistema local.
+* Modo de autenticación mixto.
+* Contraseña en blanco para sa .
+Finalizado, vamos al Administrador corporativo e iniciamos el servidor.
+Disponemos de una serie de utilidades de línea de comandos, entre ellas ISQL.exe, que es una interfaz de consultas en el símbolo del sistema. Esto puede resultar útil cuando se desea probar de forma eficaz distintos inicios de sesión para distintos usuarios.
+Conectar mediante autenticación de SQL: puede pasar un nombre de usuario mediante el modificador –U y, opcionalmente, especificar la contraseña con el modificador –P. Si no especifica una contraseña, ISQL le pedirá una. El comando siguiente, emitido desde el símbolo del sistema de Windows, hace que se pida la contraseña. La ventaja de este enfoque (alternativo al uso del modificador –P) es que la contraseña no se muestra en pantalla.
+ C:\> isql -S YourServer -d pubs -U YourUser
+Conectar mediante autenticación de Windows: puede utilizar el modificador –E para utilizar una conexión de confianza que usa el contexto de seguridad del usuario que tiene iniciada una sesión de forma interactiva actualmente.
+ C:\> isql -S YourServer -d pubs –E
+Ejecutar una consulta sencilla: cuando haya iniciado una sesión, puede ejecutar una consulta sencilla, como la que se muestra a continuación.
+ 1> use pubs
+ 2> SELECT au_lname, au_fname FROM authors
+ 3> go
+
+Para cerrar ISQL, escriba quit en el símbolo del sistema.
+
+Otras utilidades de CLI son:
+* BCP: Se pude utilizar para importar y exportar datos o copiar datos entre instalación de sql *Server 2000. Su principal característica es la velocidad
+* OSQL: Una alternativa a ISQl es OSQl que se utiliza para ejecutar consultas mediante conexiones ODBC
+* TextCopy: Importa y exporta archivos de texto o de imagen con SQl Server. Cunado se importa con esta herramienta sobre escribe la información que se encuentra en las tablas
+* OdbcPing: Herramienta para verificar la conexión ODBC entre el cliente y el servidor
+* Rebuildm: Utiliza para reconstruir la base de datos Master. Ya sea por que este corrupto o por restablecer las opciones preestablecidas

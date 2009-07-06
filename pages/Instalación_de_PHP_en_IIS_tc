@@ -1,0 +1,26 @@
+Instalar IIS mediante el panel de "Asistente para configurar su servidor"
+
+[[Imagen:nuevo-8.png]]
+
+propiedades de sitio web predeterminado:
+
+[[Imagen:nuevo-2.png]]
+
+propiedades de la carpeta publicada en web:
+
+[[Imagen:nuevo-4.png]]
+
+pestaña Seguridad de directorios - Modificar
+
+[[Imagen:nuevo-6.png]]
+
+Agregar una nueva extensión de servicio web...
+nombre PHP
+archivos necesarios
+ c:\php\sapi\php4isapi.dll
+añadir extension permitida isapi (es mejor que cgi)
+añadir php4ts.dll y lib a system32
+c:\php a Path
+ cgi.force_redirect in php.ini and set equal to 0
+reiniciar servidor desde:
+SERVERCONEXION2 (equipo local) – Todas las tareas – Reiniciar IIS...
