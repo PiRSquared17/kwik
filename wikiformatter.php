@@ -106,7 +106,6 @@ function wikiformatter($t) {
     }
     
     //imprimo los encabezados y luego el texto
-    echo '<h1>',$page,'</h1>';
     if (!empty($t3)) {
         echo '<div class="clearfix"><ul id="jumpers">';
         foreach ($t3 as $i) echo '<li>',$i,'</li>';
