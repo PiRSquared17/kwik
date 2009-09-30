@@ -29,37 +29,45 @@ function wikiformatter($t) {
     $li_level = 0;
     $li_level_old = 0;
     $t3 = array();
-    $idx = 0;
+    $idx = array();
     foreach (split("\n", $t) as $l) {
         //conteo de headings para el resumen y los anchor
         if ($l[0] == '=') {
             $anchor = rand();
             preg_match('/^(=*).*$/', $l, $level);
+            $nivel = strlen($level[1]); //el número de = coincide con el heading
             $m = array();
             $nl = '';
-            switch (strlen($level[1])) {
+            switch ($nivel) { //realizo las sustituciones
                 case 2:
                     preg_match('/^==([^=]*)==$/', $l, $m);
-                    $n = 2;
+                    $idx[0]++; //cada vez que hay un nuevo elemento a un cierto nivel, se resetean los niveles anidados (me evita mantener contadores de anterior...)
+                    $idx[1] = null;
+                    $idx[2] = null;
+                    $idx[3] = null;
                     break;
                 case 3:
                     preg_match('/^===([^=]*)===$/', $l, $m);
-                    $n = 3;
+                    $idx[1]++;
+                    $idx[2] = null;
+                    $idx[3] = null;
                     break;
                 case 4:
                     preg_match('/^====([^=]*)====$/', $l, $m);
-                    $n = 4;
+                    $idx[2]++;
+                    $idx[3] = null;
                     break;
                 case 5:
                     preg_match('/^=====([^=]*)=====$/', $l, $m);
-                    $n = 5;
+                    $idx[3]++;
                     break;
             }
-            ++$idx;
-            $spc = '';
-            for ($i=2; $i<$n; $i++) $spc .= '&nbsp;';
-            $t3[] = "$spc<a href=\"#$anchor\">$idx. {$m[1]}</a>";
-            $l = "<h$n><a name=\"$anchor\">{$m[1]}</a></h$n>";
+            
+            $nest = ''; //número nivel anidación
+            for ($i=0; $i<$nivel-1; $i++) $nest .= $idx[$i].'.';
+            
+            $t3[] = '<a style="margin-left:' . ($nivel*30-60) . "px\" href=\"#$anchor\">$nest {$m[1]}</a>";
+            $l = "<h$nivel><a name=\"$anchor\">{$m[1]}</a></h$nivel>";
         }
         
         //línea vacía supone salto de línea, salvo que hayamos pintado antes otro salto de línea
