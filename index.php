@@ -9,8 +9,8 @@ if (empty($page)) $page = 'Portada';
 	<head>
 		<title><?=$page?></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<link type="text/css" rel="stylesheet" media="all" href="/res/phiki.css" />
-		<script type="text/javascript" src="/res/jquery.js"></script>
+		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
+		<script type="text/javascript" src="<?=$path?>/res/jquery.js"></script>
 		<script type="text/javascript">
 		    /*$(document).ready(function() {
 		        $(window).scroll(function() {
@@ -25,8 +25,8 @@ if (empty($page)) $page = 'Portada';
         </div>
         <div id="contents">
             <ul id="menu">
-                <li><a id="kk" href="/<?=$page?>/edit">Edit page</a></li>
-                <li><a href="/<?=$page?>/new">New page</a></li>
+                <li><a id="kk" href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
+                <li><a href="<?=$path?>/<?=$page?>/new">New page</a></li>
                 </ul>
             
 <?

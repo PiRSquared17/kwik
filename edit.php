@@ -22,7 +22,7 @@ else $content = file_get_contents("pages/$page");
 	<head>
 		<title>Editing <?=$page?></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<link type="text/css" rel="stylesheet" media="all" href="/res/phiki.css" />
+		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
 		<!--script type="text/javascript" src="/res/jquery.js"></script>
 		<script type="text/javascript" src="/res/jquery.corner.js"></script>
 		<script type="text/javascript">
@@ -36,7 +36,7 @@ else $content = file_get_contents("pages/$page");
         <div id="header">
         
         </div>
-        <form action="/<?=$page?>/edit" method="post">
+        <form action="<?=$path?>/<?=$page?>/edit" method="post">
             <div id="contents">
                 <ul id="menu">
                     <li><button name="preview" type="submit">Preview</button></li>

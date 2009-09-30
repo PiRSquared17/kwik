@@ -1,32 +1,31 @@
 <?
-//TODO tablas e imágenes...
-//TODO mercurial
+
+$path = '/phiki';
 
 function wikiformatter($t) {
-    global $page;
-    
+
     //primera parte de análisis global
 
     $t = str_replace("\r", '', $t);
-/*
-    $t = preg_replace('/==(\w*)==/', '<h2><a name="RND">\\1</a></h2>', $t);
-    $t = preg_replace('/===(\w*)===/', '<h3><a name="RND">\\1</a></h3>', $t);
-    $t = preg_replace('/====(\w*)====/', '<h4><a name="RND">\\1</a></h4>', $t);
-    $t = preg_replace('/=====(\w*)=====/', '<h5><a name="RND">\\1</a></h5>', $t);
-*/
+
     $t = preg_replace("/'''([^']*)'''/", '<strong>\\1</strong>', $t);
     $t = preg_replace("/''([^']*)''/", '<cite>\\1</cite>', $t);
 
-    //$t = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="\\1">\\2</a>', $t);
-    //$t = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="\\1">\\1</a>', $t);
+    //imágenes
+    $t = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $t); //la n y el espacio son opcionales
+    //enlaces internos
+    $t = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="\\1">\\2</a>', $t);
+    $t = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="\\1">\\1</a>', $t);
+    //enlaces al exterior
     $t = preg_replace('/\[([^ ]*) (.*)\]/', '<a href="\\1">\\2</a>', $t);
     $t = preg_replace('/\[(.*)\]/', '<a href="\\1">\\1</a>', $t);
  
-    //segunda parte de análisis secuencial
-    //trocea en líneas
+    //segunda parte de análisis secuencial (troceando en líneas)
+    
+    $pre = false;
+    $br_before = false;
     $ul = false;
     $ol = false;
-    $pre = false;
     $li_level = 0;
     $li_level_old = 0;
     $t3 = array();
@@ -63,18 +62,35 @@ function wikiformatter($t) {
             $l = "<h$n><a name=\"$anchor\">{$m[1]}</a></h$n>";
         }
         
-        //línea vacía supone salto de línea
-        if (strlen($l) == 0) $l = "<br />\n";
+        //línea vacía supone salto de línea, salvo que hayamos pintado antes otro salto de línea
+        if (strlen($l) == 0 && $br_before == false) {
+            $l = "<br />\n";
+            $br_before = true;
+        } else {
+            $br_before = false;
+        }
 
         //control de texto preformateado
         if (($l[0] != ' ') && ($pre == true)) {$t2 .= "</pre>\n"; $pre = false;}
-        if (($l[0] == ' ') && ($pre == false)) {$t2 .= "<pre>\n"; $pre = true;} //TODO en modo pre debería obviar las listas
+        if (($l[0] == ' ') && ($pre == false)) {$t2 .= "<pre>\n"; $pre = true;}
 
-        //control de listas
-        if ($l[0] == '*') {
+        //error_log('['.date('Y/m/d H:i:s')."] $l \n", 3, 'this.log');
+        if (($pre == false) && (preg_match('/[^"](https?:\/\/.*)[^"]/', $l)==1)) $l = preg_replace('/(https?:\/\/.*)/', '<a href="\\1">\\1</a>', $l); //enlace externo se ignora en modo PRE
+        
+        //control de tablas, se ignora en modo PRE
+        if ($pre == false) {
+            if (substr($l, 0, 2) == '{|') $l = '<table border=1><tr>';
+            elseif (substr($l, 0, 2) == '|-') $l = '</tr><tr>';
+            elseif (substr($l, 0, 2) == '|}') $l = '</tr></table>';
+            elseif ($l[0] == '!') $l = '<th>'.substr($l, 1).'</th>';
+            elseif ($l[0] == '|') $l = '<td>'.substr($l, 1).'</td>';
+        } //TODO listas dentro de tablas
+        
+        //control de listas, se ignora en modo PRE
+        if (($pre == false) && ($l[0] == '*')) {
             if (preg_match('/^([\*#]*)([^\*#]*)$/', $l, $match)) {
                 $li_level = strlen($match[1]);
-                //print_r($match);
+                //error_log('['.date('Y/m/d H:i:s')."] $match \n", 3, 'this.log');
             }
         } else {
             $li_level = 0;
@@ -102,13 +118,12 @@ function wikiformatter($t) {
         }
 
         $li_level_old = $li_level;
-
     }
     
     //imprimo los encabezados y luego el texto
     if (!empty($t3)) {
         echo '<div class="clearfix"><ul id="jumpers">';
-        foreach ($t3 as $i) echo '<li>',$i,'</li>';
+        foreach ($t3 as $i) echo '<li>',$i,'</li>',"\n";
         echo '</ul></div>';
     }
     echo $t2;

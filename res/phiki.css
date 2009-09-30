@@ -1,16 +1,16 @@
-/****************************************************************************//* reset de propiedades */* {margin: 0; padding: 0;}img, a {border: none;}a:hover {text-decoration: none;}*:focus {outline: none;}em {text-decoration: underline; font-style: normal;}kbd {border: outset; font-size: 160%; line-height: 3em; padding: 0.3em 0 0.3em 0.5em; font-weight: bold;}/* propociona altura a divs sin altura con contenido flotado *//* http://www.positioniseverything.net/easyclearing.html */.clearfix:after {content: "."; display: block; height: 0; clear: both; visibility: hidden;}.clearfix {display: inline-block;}* html .clearfix {height: 1%;}.clearfix {display: block;}legend, hr, caption, .skipnav {display: none !important;}ul {list-style: none;}/****************************************************************************//* estilo del documento */body {font: 12px verdana,sans-serif; background: #ccc url(/res/overlay-abstract.png) repeat-x;}
+/****************************************************************************//* reset de propiedades */* {margin: 0; padding: 0;}img, a {border: none;}a:hover {text-decoration: none;}*:focus {outline: none;}em {text-decoration: underline; font-style: normal;}kbd {border: outset; font-size: 160%; line-height: 3em; padding: 0.3em 0 0.3em 0.5em; font-weight: bold;}/* propociona altura a divs sin altura con contenido flotado *//* http://www.positioniseverything.net/easyclearing.html */.clearfix:after {content: "."; display: block; height: 0; clear: both; visibility: hidden;}.clearfix {display: inline-block;}* html .clearfix {height: 1%;}.clearfix {display: block;}legend, hr, caption, .skipnav {display: none !important;}ul {list-style: none;}/****************************************************************************//* estilo del documento */body {font: 12px verdana,sans-serif; background: #ccc url(/phiki/res/overlay-abstract.png) repeat-x;}
 
-#header {width: 70%; height: 120px; margin: 0 auto; position: relative; background: url(/res/cable.png) repeat-y right; padding: 20px}
-#contents {width: 70%; margin: 0 auto 40px; background: url(/res/cable.png) repeat-y right #fff; position: relative; padding: 20px; -moz-border-radius: 10px; -webkit-border-radius: 10px;}
+#header {width: 70%; height: 120px; margin: 0 auto; position: relative; background: url(/phiki/res/cable.png) repeat-y 99%; padding: 20px}
+#contents {width: 70%; margin: 0 auto 40px; background: url(/phiki/res/cable.png) repeat-y 99% #fff; position: relative; padding: 20px; -moz-border-radius: 10px; -webkit-border-radius: 10px;}
     #contents a {color: #0489b7;}
-/*    #menu {position: absolute; background: url(/res/overlay-abstract.png) top center #0f0; border: 2px solid #0a0; top: 30px; right: -20px; -moz-border-radius: 10px; -webkit-border-radius: 10px;}
-*/    #menu {position: fixed; background: url(/res/overlay-abstract.png) top center #ccff41; border: 2px solid #7f9d01; top: 200px; right: 11%; -moz-border-radius: 10px; -webkit-border-radius: 10px;}
-        #menu li {display: block; padding: 10px;}
-            #menu a, button {color: #7f9d01; font-weight: bold; text-decoration: none;}
+/*    #menu {position: absolute; background: url(/phiki/res/overlay-abstract.png) top center #0f0; border: 2px solid #0a0; top: 30px; right: -20px; -moz-border-radius: 10px; -webkit-border-radius: 10px;}
+*/    #menu {position: fixed; background: url(/phiki/res/eme.png); border: 2px solid #7f9d01; top: 130px; right: 13%; -moz-border-radius: 10px; -webkit-border-radius: 10px;}
+        #menu li {float: left; padding: 10px;}
+            #menu a, button {display: block; color: #fff; font-weight: bold; text-decoration: none;}
             button {height: 42px;}
     textarea {width: 100%; border: 1px solid #0489b7; background: #c2e0ea; color: #4b4742; margin: 15px 0;}
     textarea:focus {border: 1px solid #c2e0ea; background: #fff; color: #000;}
-        a.filaa {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/res/ico_filaa.gif) no-repeat;}        a.filad {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/res/ico_filad.gif) no-repeat;}    pre {border: 1px dashed #c2e0ea; padding: 10px; color: #4b4742; margin: 10px 0;}
+        a.filaa {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/phiki/res/ico_filaa.gif) no-repeat;}        a.filad {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/phiki/res/ico_filad.gif) no-repeat;}    pre {border: 1px dashed #c2e0ea; padding: 10px; color: #4b4742; margin: 10px 0;}
     #jumpers {float: left; display: block; border: 1px solid #c2e0ea; padding: 10px; margin: 10px 0;}
     ul.list {list-style: disc !important; padding-left: 20px;}
     

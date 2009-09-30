@@ -90,7 +90,7 @@ Por otro lado, la calidad de los drivers para XP es mucho mayor que para linux. 
  # ndiswrapper -i oem17.inf
  # ndiswapper -l
  oem17 : driver installed
-	device (1814:0201) present (alternate driver: rt2500)
+ device (1814:0201) present (alternate driver: rt2500)
 Ahora añadimos el módulo en /etc/modules, y el rt2500pci en la lista negra /etc/modprobe.d/blacklist
 
 == Arranque más rápido ==
