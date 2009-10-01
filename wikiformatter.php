@@ -87,7 +87,7 @@ function wikiformatter($t) {
         
         //control de tablas, se ignora en modo PRE
         if ($pre == false) {
-            if (substr($l, 0, 2) == '{|') $l = '<table border=1><tr>';
+            if (substr($l, 0, 2) == '{|') $l = '<table><tr>';
             elseif (substr($l, 0, 2) == '|-') $l = '</tr><tr>';
             elseif (substr($l, 0, 2) == '|}') $l = '</tr></table>';
             elseif ($l[0] == '!') $l = '<th>'.substr($l, 1).'</th>';

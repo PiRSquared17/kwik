@@ -22,19 +22,20 @@ else $content = file_get_contents("pages/$page");
 	<head>
 		<title>Editing <?=$page?></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
+        <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
 		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
-		<!--script type="text/javascript" src="/res/jquery.js"></script>
-		<script type="text/javascript" src="/res/jquery.corner.js"></script>
-		<script type="text/javascript">
-		    $(document).ready(function() {
-    		    $('#contents').corner();
-    		    $('#menu a').corner();
-		    });
-		</script-->
     </head>
     <body>
-        <div id="header">
-        
+        <div id="menubg">
+            <div id="menu">
+                <h1><?=$page?></h1>
+                <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
+                <ul>
+                    <li><a id="kk" href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
+                    <li><a href="<?=$path?>/<?=$page?>/new">New page</a></li>
+                </ul>
+            </div>
         </div>
         <form action="<?=$path?>/<?=$page?>/edit" method="post">
             <div id="contents">
