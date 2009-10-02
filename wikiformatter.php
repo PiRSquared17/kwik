@@ -128,8 +128,8 @@ function wikiformatter($t) {
         $li_level_old = $li_level;
     }
     
-    //imprimo los encabezados y luego el texto
-    if (!empty($t3)) {
+    //imprimo los encabezados (si hay más de 3) y luego el texto
+    if (count($t3)>3) {
         echo '<div class="clearfix"><ul id="jumpers">';
         foreach ($t3 as $i) echo '<li>',$i,'</li>',"\n";
         echo '</ul></div>';

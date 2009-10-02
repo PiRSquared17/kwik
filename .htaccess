@@ -5,4 +5,3 @@ RewriteEngine on
 RewriteRule ^(\w*)$             /phiki/index.php?page=$1
 RewriteRule ^(\w*)/edit$        /phiki/edit.php?page=$1&edit
 
-

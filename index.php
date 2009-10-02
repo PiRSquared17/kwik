@@ -20,6 +20,8 @@ if (empty($page)) $page = 'Portada';
                 <h1><?=$page?></h1>
                 <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
                 <ul>
+                    <li><input type="text" name="search" /><button>Search</button></li>
+                    <li><a href="<?=$path?>/Todas">All pages</a></li>
                     <li><a id="kk" href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
                     <li><a href="<?=$path?>/<?=$page?>/new">New page</a></li>
                 </ul>
@@ -27,11 +29,24 @@ if (empty($page)) $page = 'Portada';
         </div>
         <div id="contents">
 <?
-if (file_exists("pages/$page")) {
-    $content = file_get_contents("pages/$page");
+if ($page=='Todas') {
+    $content = "==Todas las páginas==\n";
+    if ($h = opendir('pages')) {
+        while (false !== ($f = readdir($h))) {
+            if ($f != '.' && $f != '..') {
+                $content .= "*[[$f]]\n";
+            }
+        }
+        closedir($h);
+    }
     wikiformatter($content);
 } else {
-    echo 'La página no existe. Pulse sobre el enlace superior para crearla.';
+    if (file_exists("pages/$page")) {
+        $content = file_get_contents("pages/$page");
+        wikiformatter($content);
+    } else {
+        echo 'La página no existe. Pulse sobre el enlace superior para crearla.';
+    }
 }
 ?>
         </div>
