@@ -1,4 +1,0 @@
-== Instalar Borland C++ Builder ==
-Meter el primer CD. Meter el segundo.
-Ir al menu Project-Options pestaña C++ desactivar Enable RTTI.
-Ir al menu Project-Options pestaña Linker desactivar Use dynamic RTL y Create debug information.

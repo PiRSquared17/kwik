@@ -1,9 +1,0 @@
- $ sqlplus /nolog
- > connect CICPORTALJOB@SDESPORTAL.WORLD
-
-o bien
- # su - oracle #para fijar variables de entorno
- $ sqlplus sys/cicadmin1@ORCL as sysdba
- $ sqlplus cicportaljob/cicportaljob@ORCL
- > set linesize 10000;
- > desc table;

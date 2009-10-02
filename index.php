@@ -27,10 +27,12 @@ if (empty($page)) $page = 'Portada';
         </div>
         <div id="contents">
 <?
-
-$content = file_get_contents("pages/$page");
-wikiformatter($content);
-
+if (file_exists("pages/$page")) {
+    $content = file_get_contents("pages/$page");
+    wikiformatter($content);
+} else {
+    echo 'La página no existe. Pulse sobre el enlace superior para crearla.';
+}
 ?>
         </div>
     </body>
