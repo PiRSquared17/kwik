@@ -3,6 +3,11 @@ require_once 'wikiformatter.php';
 
 //TODO limpiar $_POST['terms'] para prevenir inyecciones
 
+if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('new', $_POST)) {
+	header('HTTP/1.1 302 Found');
+	header("Location: $path/{$_POST['terms']}/edit");
+}
+
 $page = $_GET['page'];
 if (empty($page)) $page = 'Portada';
 ?>
@@ -16,19 +21,19 @@ if (empty($page)) $page = 'Portada';
 		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
     </head>
     <body>
-        <form action="<?=$path?>/<?=$page?>" method="post">
+        <form action="<?=$path?>/" method="post">
             <div id="menubg">
                 <div id="menu">
                     <h1><?=$page?></h1>
                     <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
                     <ul>
-                        <li><input type="text" name="terms" value="<?=$_POST['terms']?>" /><button name="search" type="submit">Search</button></li>
+                        <li><input type="text" name="terms" value="<?=$_POST['terms']?>" /><button name="search" type="submit">Search</button> or <button name="new" type="submit">Create</button></li>
                         <li><a href="<?=$path?>/Todas">All pages</a></li>
-                        <li><a id="kk" href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
-                        <li><a href="<?=$path?>/<?=$page?>/new">New page</a></li>
+                        <li><a href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
                     </ul>
                 </div>
             </div>
+        </form>
             <div id="contents">
 <?
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)) {
@@ -68,7 +73,6 @@ if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)
     }
 }
 ?>
-            </div>
-        </form>
+        </div>
     </body>
 </html>

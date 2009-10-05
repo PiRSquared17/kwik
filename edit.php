@@ -6,15 +6,22 @@ $page = $_GET['page'];
 if (empty($page)) die;
 
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
+    echo `touch pages/{$_POST['terms']}`;
     file_put_contents("pages/$page", $_POST['content']);
 	header('HTTP/1.1 302 Found');
-	header("Location: /$page");
+	header("Location: $path/$page");
 }
 
-//if (array_key_exists('delete', $_POST))
+if (array_key_exists('delete', $_POST)) {
+    $content = `cd pages; echo $page`;
+}
 
 if (array_key_exists('preview', $_POST)) $content = $_POST['content'];
-else $content = file_get_contents("pages/$page");
+else if (file_exists("pages/$page")) {
+    $content = file_get_contents("pages/$page");
+} else {
+    $content = 'Edite el contenido de la nueva página ' . $page;
+}
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
