@@ -25,29 +25,26 @@ else $content = file_get_contents("pages/$page");
         <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
         <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
 		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
+        <script type="text/javascript" src="<?=$path?>/res/jquery.js"></script>
     </head>
     <body>
-        <div id="menubg">
-            <div id="menu">
-                <h1><?=$page?></h1>
-                <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
-                <ul>
-                    <li><a id="kk" href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
-                    <li><a href="<?=$path?>/<?=$page?>/new">New page</a></li>
-                </ul>
-            </div>
-        </div>
         <form action="<?=$path?>/<?=$page?>/edit" method="post">
+            <div id="menubg">
+                <div id="menu">
+                    <h1><?=$page?></h1>
+                    <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
+                    <ul>
+                        <li><a href="<?=$path?>/">Cancel</a></li>
+                        <li><button name="preview" type="submit">Preview</button></li>
+                        <li><button name="save" type="submit">Save</button></li>
+                        <li><button name="delete" type="submit">Delete</button></li>
+                    </ul>
+                </div>
+            </div>
             <div id="contents">
-                <ul id="menu">
-                    <li><button name="preview" type="submit">Preview</button></li>
-                    <li><button name="save" type="submit">Save</button></li>
-                    <li><button name="delete" type="submit">Delete</button></li>
-                </ul>
-                <textarea name="content" rows="25" cols="80"><?=$content?></textarea>
                 <a href="#" class="filaa" title="enlarge box" onclick="$('textarea').attr('rows',$('textarea').attr('rows')+1);return false;">more</a>
                 <a href="#" class="filad" title="shrink box" onclick="$('textarea').attr('rows',$('textarea').attr('rows')-1);return false;">less</a>
-                <hr />
+                <textarea name="content" rows="25" cols="80"><?=$content?></textarea>
                 <?wikiformatter($content)?>
             </div>
         </form>

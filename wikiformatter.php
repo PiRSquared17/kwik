@@ -22,7 +22,7 @@ function wikiformatter($t) {
     $li_level_old = 0;
     $t3 = array();
     $idx = array();
-    foreach (split("\n", $t) as $l) {
+    foreach (explode("\n", $t) as $l) {
         //conteo de headings para el resumen y los anchor
         if ($l[0] == '=') {
             $anchor = rand();

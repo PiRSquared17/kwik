@@ -12,9 +12,9 @@ table {border-spacing: 0;}/***************************************************
                 #menu button {float: left; border: none; background: transparent; font: bold 12px verdana,sans-serif; color: #333333;}
 #contents {width: 70%; margin: 20px auto 40px; background: #fff; position: relative; padding: 20px; -moz-border-radius: 20px; -webkit-border-radius: 20px;}
     #contents a {color: #099c09;}
-    textarea {width: 100%; border: 1px solid #0489b7; background: #c2e0ea; color: #4b4742; margin: 15px 0;}
-    textarea:focus {border: 1px solid #099c09; background: #fff; color: #000;}
-        a.filaa {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/phiki/res/ico_filaa.gif) no-repeat;}        a.filad {text-indent: -9999px; width: 16px; height: 16px; display: block; background: url(/phiki/res/ico_filad.gif) no-repeat;}    table {border-left: 1px solid #099c09; border-top: 1px solid #099c09;}
+    textarea {width: 100%; border: 1px solid #099c09; background: #d3f6cc; color: #333333; margin: 15px 0;}
+    textarea:focus {border: 1px solid #fed43d; background: #fff; color: #000;}
+        a.filaa {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; background: url(/phiki/res/ico_filaa.gif) no-repeat;}        a.filad {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; background: url(/phiki/res/ico_filad.gif) no-repeat;}    table {border-left: 1px solid #099c09; border-top: 1px solid #099c09;}
         th, td {border-right: 1px solid #099c09; border-bottom: 1px solid #099c09;}
     pre {border: 1px dashed #099c09; padding: 10px; color: #333333; margin: 10px 0;}
     #jumpers {float: left; display: block; border: 1px solid #099c09; padding: 10px; margin: 10px 0;}
