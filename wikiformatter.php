@@ -8,18 +8,10 @@ function wikiformatter($t) {
 
     $t = str_replace("\r", '', $t);
 
-    $t = preg_replace("/'''([^']*)'''/", '<strong>\\1</strong>', $t);
-    $t = preg_replace("/''([^']*)''/", '<cite>\\1</cite>', $t);
+    $t = preg_replace("/</", '&lt;', $t);
+    $t = preg_replace("/>/", '&gt;', $t);
 
-    //imágenes
-    $t = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $t); //la n y el espacio son opcionales
-    //enlaces internos
-    $t = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="\\1">\\2</a>', $t);
-    $t = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="\\1">\\1</a>', $t);
-    //enlaces al exterior
-    $t = preg_replace('/\[([^ ]*) (.*)\]/', '<a href="\\1">\\2</a>', $t);
-    $t = preg_replace('/\[(.*)\]/', '<a href="\\1">\\1</a>', $t);
- 
+
     //segunda parte de análisis secuencial (troceando en líneas)
     
     $pre = false;
@@ -85,6 +77,20 @@ function wikiformatter($t) {
         //error_log('['.date('Y/m/d H:i:s')."] $l \n", 3, 'this.log');
         if (($pre == false) && (preg_match('/[^"](https?:\/\/.*)[^"]/', $l)==1)) $l = preg_replace('/(https?:\/\/.*)/', '<a href="\\1">\\1</a>', $l); //enlace externo se ignora en modo PRE
         
+        //control de negritas, cursivas y enlaces; se ignora en modo PRE
+        if ($pre == false) {
+            $l = preg_replace("/'''([^']*)'''/", '<strong>\\1</strong>', $l);
+            $l = preg_replace("/''([^']*)''/", '<cite>\\1</cite>', $l);
+            //imágenes
+            $l = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $l); //la n y el espacio son opcionales
+            //enlaces internos
+            $l = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="\\1">\\2</a>', $l);
+            $l = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="\\1">\\1</a>', $l);
+            //enlaces al exterior
+            $l = preg_replace('/\[([^ ]*) (.*)\]/', '<a href="\\1">\\2</a>', $l);
+            $l = preg_replace('/\[(.*)\]/', '<a href="\\1">\\1</a>', $l);
+        }
+
         //control de tablas, se ignora en modo PRE
         if ($pre == false) {
             if (substr($l, 0, 2) == '{|') $l = '<table><tr>';
@@ -95,7 +101,7 @@ function wikiformatter($t) {
         } //TODO listas dentro de tablas
         
         //control de listas, se ignora en modo PRE
-        if (($pre == false) && ($l[0] == '*')) {
+        if (($pre == false) && (($l[0] == '*') || ($l[0] == '#')) ) {
             if (preg_match('/^([\*#]*)([^\*#]*)$/', $l, $match)) {
                 $li_level = strlen($match[1]);
                 //error_log('['.date('Y/m/d H:i:s')."] $match \n", 3, 'this.log');
@@ -128,6 +134,8 @@ function wikiformatter($t) {
         $li_level_old = $li_level;
     }
     
+    
+    //fin de parseo, impresión del texto final
     //imprimo los encabezados (si hay más de 3) y luego el texto
     if (count($t3)>3) {
         echo '<div class="clearfix"><ul id="jumpers">';
