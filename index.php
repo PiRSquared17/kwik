@@ -27,7 +27,7 @@ if (empty($page)) $page = 'Portada';
                     <h1><?=$page?></h1>
                     <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
                     <ul>
-                        <li><input type="text" name="terms" value="<?=$_POST['terms']?>" /><button name="search" type="submit">Search</button> or <button name="new" type="submit">Create</button></li>
+                        <li><input type="text" name="terms" value="<?=(!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit">Search</button> <button name="new" type="submit">Create</button></li>
                         <li><a href="<?=$path?>/Todas">All pages</a></li>
                         <li><a href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
                     </ul>
@@ -44,9 +44,9 @@ if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)
         $el = explode(':', $l, 2);
         if (count($el) > 1) {
             if ($el_ant != $el[0]) {
-                $content .= "*[[{$el[0]}]]\n\n"; //TODO averiguar por qué uno de ellos sobra pero no funciona
+                $content .= "*[[{$el[0]}]]\n";
             }
-            $content .= " {$el[1]}\n \n";
+            $content .= " {$el[1]} \n";
             $el_ant = $el[0];
         }
     }
