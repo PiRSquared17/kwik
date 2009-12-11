@@ -7,8 +7,9 @@ if (empty($page)) die;
 
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
     echo `touch pages/{$_POST['terms']}`;
-    $content = str_replace("\\'", "'", $_POST['content']);
-    $content = str_replace('\\"', '"', $content); //debido a magic_quotes_gpc, php escapa las comillas; he de volverlas a su ser
+    if (get_magic_quotes_gpc()) { //no nos interesa el magic_quotes_gpc y no es desactivable en ejecución
+        $content = stripslashes($_POST['content']);
+    }
     file_put_contents("pages/$page", $content);
 	header('HTTP/1.1 302 Found');
 	header("Location: $path/$page");
