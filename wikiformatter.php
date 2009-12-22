@@ -144,7 +144,7 @@ function wikiformatter($t) {
             elseif ($l[0] == '!') $l = '<th>'.substr($l, 1).'</th>';
             elseif ($l[0] == '|') $l = '<td>'.substr($l, 1).'</td>';
             
-            if (preg_match('/http(s?:\/\/[\w\/\.\?#=\-_%@]*)/', $l, $m)==1) { //busca enlaces externos sueltos, no se puede hacer preg_replace pues estropea los ya encontrados
+            if (preg_match('/http(s?:\/\/[\w\/\.\?#=\-_%@\+:]*)/', $l, $m)==1) { //busca enlaces externos sueltos, no se puede hacer preg_replace pues estropea los ya encontrados
                 $p = strpos($l, $m[0]);
                 if ($p == 0 || $l{$p-1} != '"') { //TODO {} para cadenas será deprecado en PHP 6
                     $l = str_replace($m[0], "<a href=\"{$m[0]}\">{$m[0]}</a>", $l);
