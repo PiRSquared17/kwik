@@ -1,6 +1,6 @@
 <?
 
-$path = '/phiki';
+$path = '/kwik';
 
 function wikiformatter($t) {
 

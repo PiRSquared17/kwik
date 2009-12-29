@@ -18,14 +18,14 @@ if (empty($page)) $page = 'Portada';
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
         <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
-		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
+		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/kwik.css" />
     </head>
     <body>
         <form action="<?=$path?>/" method="post">
             <div id="menubg">
                 <div id="menu">
                     <h1><?=$page?></h1>
-                    <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
+                    <p>powered by kwik</p>
                     <ul>
                         <li><input type="text" name="terms" value="<?=(!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit">Search</button> <button name="new" type="submit">Create</button></li>
                         <li><a href="<?=$path?>/Todas">All pages</a></li>

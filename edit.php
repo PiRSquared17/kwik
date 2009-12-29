@@ -34,15 +34,17 @@ else if (file_exists("pages/$page")) {
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
         <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
-		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/phiki.css" />
+		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/kwik.css" />
+		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/prettify.css" />
         <script type="text/javascript" src="<?=$path?>/res/jquery.js"></script>
+        <script type="text/javascript" src="<?=$path?>/res/prettify.js"></script>
     </head>
-    <body>
+    <body onload="prettyPrint()">
         <form action="<?=$path?>/<?=$page?>/edit" method="post">
             <div id="menubg">
                 <div id="menu">
                     <h1><?=$page?></h1>
-                    <p>powered by phiki, <strong>ph</strong>p w<strong>iki</strong></p>
+                    <p>powered by kwik</p>
                     <ul>
                         <li><a href="<?=$path?>/">Cancel</a></li>
                         <li><button name="preview" type="submit">Preview</button></li>
@@ -54,7 +56,7 @@ else if (file_exists("pages/$page")) {
             <div id="contents">
                 <a href="#" class="filaa" title="enlarge box" onclick="$('textarea').attr('rows',$('textarea').attr('rows')+1);return false;">more</a>
                 <a href="#" class="filad" title="shrink box" onclick="$('textarea').attr('rows',$('textarea').attr('rows')-1);return false;">less</a>
-                <textarea name="content" rows="25" cols="80"><?=$content?></textarea>
+                <textarea name="content" rows="25" cols="80" class="prettyprint"><?=$content?></textarea>
                 <?wikiformatter($content)?>
             </div>
         </form>
