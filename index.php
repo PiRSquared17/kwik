@@ -1,6 +1,5 @@
 <?
 require_once 'wikiformatter.php';
-
 //TODO limpiar $_POST['terms'] para prevenir inyecciones
 
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('new', $_POST)) {
@@ -34,7 +33,7 @@ if (empty($page)) $page = 'Portada';
                 </div>
             </div>
         </form>
-            <div id="contents">
+        <div id="contents">
 <?
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)) {
     $search = `cd pages; grep {$_POST['terms']} *`;

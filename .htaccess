@@ -1,7 +1,7 @@
 RewriteEngine on
 
-#RewriteRule ^res/(.*)$          /phiki/res/$1
-#RewriteRule ^img/(.*)$          /phiki/img/$1
-RewriteRule ^(\w*)$             /phiki/index.php?page=$1
-RewriteRule ^(\w*)/edit$        /phiki/edit.php?page=$1&edit
+RewriteRule ^res/(.*)$          /kwik/res/$1
+RewriteRule ^img/(.*)$          /kwik/img/$1
+RewriteRule ^(\w*)$             /kwik/index.php?page=$1
+RewriteRule ^(\w*)/edit$        /kwik/edit.php?page=$1&edit
 
