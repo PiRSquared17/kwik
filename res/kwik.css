@@ -38,8 +38,9 @@ body {font: 12px verdana,sans-serif; background: #fff url(/kwik/res/greentrans.p
     #contents a {color: #099c09;}
     textarea {width: 100%; border: 1px solid #099c09; background: #d3f6cc; color: #333333; margin: 15px 0;}
     textarea:focus {border: 1px solid #fed43d; background: #fff; color: #000;}
-        a.filaa {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; background: url(/kwik/res/ico_filaa.gif) no-repeat;}
-        a.filad {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; background: url(/kwik/res/ico_filad.gif) no-repeat;}
+        span.resizer {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; cursor: ns-resize;}
+        #filaa {background: url(/kwik/res/ico_filaa.gif) no-repeat;}
+        #filad {background: url(/kwik/res/ico_filad.gif) no-repeat;}
     table {border-left: 1px solid #099c09; border-top: 1px solid #099c09;}
         th, td {border-right: 1px solid #099c09; border-bottom: 1px solid #099c09;}
     pre {border: 1px dashed #099c09; padding: 10px; color: #333333; margin: 10px 0;}

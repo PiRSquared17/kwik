@@ -35,11 +35,8 @@ else if (file_exists("pages/$page")) {
         <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
         <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
 		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/kwik.css" />
-		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/prettify.css" />
-        <script type="text/javascript" src="<?=$path?>/res/jquery.js"></script>
-        <script type="text/javascript" src="<?=$path?>/res/prettify.js"></script>
     </head>
-    <body onload="prettyPrint()">
+    <body>
         <form action="<?=$path?>/<?=$page?>/edit" method="post">
             <div id="menubg">
                 <div id="menu">
@@ -54,11 +51,28 @@ else if (file_exists("pages/$page")) {
                 </div>
             </div>
             <div id="contents">
-                <a href="#" class="filaa" title="enlarge box" onclick="$('textarea').attr('rows',$('textarea').attr('rows')+1);return false;">more</a>
-                <a href="#" class="filad" title="shrink box" onclick="$('textarea').attr('rows',$('textarea').attr('rows')-1);return false;">less</a>
+                <span class="resizer" id="filaa" title="keep pressing to enlarge textbox">more</span>
+                <span class="resizer" id="filad" title="keep pressing to shrink textbox">less</span>
                 <textarea name="content" rows="25" cols="80" class="prettyprint"><?=$content?></textarea>
                 <?wikiformatter($content)?>
             </div>
         </form>
+        <script type="text/javascript" src="<?=$path?>/res/jquery.js"></script>
+        <script type="text/javascript">
+        <!--
+            var add = 0;
+            $('.resizer').mousedown(function(){
+                if ($(this).attr('id') == 'filaa') add = 1;
+                else add = -1;
+                resizer();
+            }).mouseup(function(){
+                add = 0;
+            });
+            function resizer() {
+                $('textarea').attr('rows',$('textarea').attr('rows') + add);
+                if (add != 0) setTimeout(resizer, 30);
+            }
+        -->
+        </script>
     </body>
 </html>
