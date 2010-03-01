@@ -16,7 +16,9 @@ if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('content', $_POST
 }
 
 if (array_key_exists('delete', $_POST)) {
-    $content = `cd pages; echo $page`;
+    $content = `cd pages; rm $page`;
+    header('HTTP/1.1 302 Found');
+	header("Location: $path/");
 }
 
 if (array_key_exists('preview', $_POST)) $content = $_POST['content'];
@@ -72,6 +74,10 @@ else if (file_exists("pages/$page")) {
                 $('textarea').attr('rows',$('textarea').attr('rows') + add);
                 if (add != 0) setTimeout(resizer, 30);
             }
+            
+            $('button[name=delete]').click(function(){
+                return confirm('This will delete <?=$page?>. Are you sure?');
+            });
         -->
         </script>
     </body>
