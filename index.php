@@ -26,9 +26,9 @@ if (empty($page)) $page = 'Portada';
                     <h1><?=$page?></h1>
                     <p>powered by kwik</p>
                     <ul>
-                        <li><input type="text" name="terms" value="<?=(!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit">Search</button> <button name="new" type="submit">Create</button></li>
-                        <li><a href="<?=$path?>/Todas">All pages</a></li>
-                        <li><a href="<?=$path?>/<?=$page?>/edit">Edit page</a></li>
+                        <li><input type="text" name="terms" value="<?=(!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit" title="Searches for the term in existing pages">Search</button> <button name="new" type="submit" title="Creates a page with the speficied name, or leads to the page if already exists">Create</button></li>
+                        <li><a href="<?=$path?>/Todas" title="Lists all pages this wiki stores">All pages</a></li>
+                        <li><a href="<?=$path?>/<?=$page?>/edit" title="Changes this page to edition mode">Edit page</a></li>
                     </ul>
                 </div>
             </div>
