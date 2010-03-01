@@ -53,13 +53,18 @@ if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)
 } else {
     if ($page=='Todas') {
         $content = "==Todas las páginas==\n";
+        $pages = array();
         if ($h = opendir('pages')) {
             while (false !== ($f = readdir($h))) {
                 if ($f != '.' && $f != '..') {
-                    $content .= "*[[$f]]\n";
+                    $pages[] = $f;
                 }
             }
             closedir($h);
+        }
+        natsort($pages);
+        foreach ($pages as $p) {
+            $content .= "*[[$p]]\n";
         }
         wikiformatter($content);
     } else {
