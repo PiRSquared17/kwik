@@ -1,4 +1,4 @@
 RewriteEngine on
 
 RewriteRule ^(\w*)$             /kwik/index.php?page=$1
-RewriteRule ^(\w*)/edit$        /kwik/edit.php?page=$1&edit
+RewriteRule ^(.*)/edit$        /kwik/edit.php?page=$1&edit

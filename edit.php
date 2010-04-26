@@ -1,7 +1,14 @@
 <?
+$page = $_GET['page'];
+
+if (strpos($page, ' ') !== false) { //la página solicitada tiene espacios
+    header('HTTP/1.1 302 Found');
+    header('Location: ' . str_replace('%20', '_', $_SERVER['REQUEST_URI']));
+    die;
+}
+
 require_once 'wikiformatter.php';
 
-$page = $_GET['page'];
 
 if (empty($page)) die;
 
@@ -32,7 +39,7 @@ else if (file_exists("pages/$page")) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title>Editing <?=$page?></title>
+		<title>Editing <?=str_replace('_', ' ', $page)?></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
         <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
@@ -42,7 +49,7 @@ else if (file_exists("pages/$page")) {
         <form action="<?=$path?>/<?=$page?>/edit" method="post">
             <div id="menubg">
                 <div id="menu">
-                    <h1><?=$page?></h1>
+                    <h1><?=str_replace('_', ' ', $page)?></h1>
                     <p>powered by kwik</p>
                     <ul>
                         <li><a href="<?=$path?>/" title="Cancels page edition">Cancel</a></li>
