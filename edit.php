@@ -12,24 +12,26 @@ require_once 'wikiformatter.php';
 
 if (empty($page)) die;
 
-if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
-    echo `touch pages/{$_POST['terms']}`;
+if (array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
+    $content = $_POST['content']; //no asumo register globals
     if (get_magic_quotes_gpc()) { //no nos interesa el magic_quotes_gpc y no es desactivable en ejecución
-        $content = stripslashes($_POST['content']);
+        $content = stripslashes($content);
     }
     file_put_contents("pages/$page", $content);
 	header('HTTP/1.1 302 Found');
 	header("Location: $path/$page");
+	die;
 }
 
 if (array_key_exists('delete', $_POST)) {
-    $content = `cd pages; rm $page`;
+    `cd pages; rm $page`;
     header('HTTP/1.1 302 Found');
-	header("Location: $path/");
+    header("Location: $path/");
+    die;
 }
 
 if (array_key_exists('preview', $_POST)) $content = $_POST['content'];
-else if (file_exists("pages/$page")) {
+else if (file_exists("pages/$page")) { //si no es preview ni guardar, es que quiero ver el contenido del fichero
     $content = file_get_contents("pages/$page");
 } else {
     $content = 'Edite el contenido de la nueva página ' . $page;

@@ -2,7 +2,7 @@
 require_once 'wikiformatter.php';
 //TODO limpiar $_POST['terms'] para prevenir inyecciones
 
-if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('new', $_POST)) {
+if (array_key_exists('new', $_POST)) {
 	header('HTTP/1.1 302 Found');
 	header("Location: $path/{$_POST['terms']}/edit");
 	die;
