@@ -36,7 +36,7 @@ if (empty($page)) $page = 'Portada';
         </form>
         <div id="contents">
 <?
-if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)) {
+if (array_key_exists('search', $_POST)) {
     $search = `cd pages; grep {$_POST['terms']} *`;
     $content = "==Resultados de la búsqueda==\n";
     $el_ant = '';
@@ -52,7 +52,7 @@ if (($_SERVER['REQUEST_METHOD'] == 'POST') && array_key_exists('search', $_POST)
     }
     wikiformatter($content);
 } else {
-    if ($page=='Todas') {
+    if ($page == 'Todas') {
         $content = "==Todas las páginas==\n";
         $pages = array();
         if ($h = opendir('pages')) {

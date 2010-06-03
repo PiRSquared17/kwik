@@ -9,6 +9,11 @@ if (strpos($page, ' ') !== false) { //la página solicitada tiene espacios
 
 require_once 'wikiformatter.php';
 
+if ($page == 'Todas') { //impide editar Todas, pues es una página especial
+	header('HTTP/1.1 302 Found');
+	header("Location: $path/$page");
+	die;
+}
 
 if (empty($page)) die;
 
@@ -24,10 +29,12 @@ if (array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
 }
 
 if (array_key_exists('delete', $_POST)) {
-    `cd pages; rm $page`;
-    header('HTTP/1.1 302 Found');
-    header("Location: $path/");
-    die;
+    if ($page != 'Portada') { //impide borrar portada
+        `cd pages; rm $page`;
+        header('HTTP/1.1 302 Found');
+        header("Location: $path/");
+        die;
+    }
 }
 
 if (array_key_exists('preview', $_POST)) $content = $_POST['content'];
