@@ -62,8 +62,8 @@ else if (file_exists("pages/$page")) { //si no es preview ni guardar, es que qui
                     <p>powered by kwik</p>
                     <ul>
                         <li><a href="<?=$path?>/" title="Cancels page edition">Cancel</a></li>
-                        <li><button name="preview" type="submit" title="Page preview, without saving">Preview</button></li>
-                        <li><button name="save" type="submit" title="Saves changes to this page">Save</button></li>
+                        <li><button name="preview" type="submit" accesskey="p" title="Page preview, without saving">Preview</button></li>
+                        <li><button name="save" type="submit" accesskey="s" title="Saves changes to this page">Save</button></li>
                         <li><button name="delete" type="submit" title="Deletes current page from disk, forever">Delete</button></li>
                     </ul>
                 </div>
