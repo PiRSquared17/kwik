@@ -37,8 +37,16 @@ if (empty($page)) $page = 'Portada';
         <div id="contents">
 <?
 if (array_key_exists('search', $_POST)) {
-    $search = `cd pages; grep {$_POST['terms']} *`;
     $content = "==Resultados de la búsqueda==\n";
+    $content .= "===Coincidencias en nombres de páginas===\n";
+    $search = `cd pages; ls`;
+    foreach (explode("\n", $search) as $l) {
+        if (strpos(strtolower($l), strtolower($_POST['terms'])) !== false)
+            $content .= "*[[$l]]\n";
+    }
+
+    $content .= "\n===Coincidencias en textos===\n";
+    $search = `cd pages; grep {$_POST['terms']} *`;
     $el_ant = '';
     foreach (explode("\n", $search) as $l) {
         $el = explode(':', $l, 2);
