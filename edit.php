@@ -1,7 +1,7 @@
 <?
 $page = $_GET['page'];
 
-if (strpos($page, ' ') !== false) { //la página solicitada tiene espacios
+if (strpos($page, ' ') !== false) { //requested page has spaces
     header('HTTP/1.1 302 Found');
     header('Location: ' . str_replace('%20', '_', $_SERVER['REQUEST_URI']));
     die;
@@ -9,7 +9,7 @@ if (strpos($page, ' ') !== false) { //la página solicitada tiene espacios
 
 require_once 'wikiformatter.php';
 
-if ($page == 'Todas') { //impide editar Todas, pues es una página especial
+if ($page == 'Todas') { //prevents Todas from being edited: it is a special page
 	header('HTTP/1.1 302 Found');
 	header("Location: $path/$page");
 	die;
@@ -18,8 +18,8 @@ if ($page == 'Todas') { //impide editar Todas, pues es una página especial
 if (empty($page)) die;
 
 if (array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
-    $content = $_POST['content']; //no asumo register globals
-    if (get_magic_quotes_gpc()) { //no nos interesa el magic_quotes_gpc y no es desactivable en ejecución
+    $content = $_POST['content']; //not asumming register globals
+    if (get_magic_quotes_gpc()) { //we're not interested in magic_quotes_gpc, and cannot be disabled at runtime
         $content = stripslashes($content);
     }
     file_put_contents("pages/$page", $content);
@@ -29,7 +29,7 @@ if (array_key_exists('content', $_POST) && array_key_exists('save', $_POST)) {
 }
 
 if (array_key_exists('delete', $_POST)) {
-    if ($page != 'Portada') { //impide borrar portada
+    if ($page != 'Main_page') { //disallows Main page deletion
         `cd pages; rm $page`;
         header('HTTP/1.1 302 Found');
         header("Location: $path/");
@@ -38,10 +38,10 @@ if (array_key_exists('delete', $_POST)) {
 }
 
 if (array_key_exists('preview', $_POST)) $content = $_POST['content'];
-else if (file_exists("pages/$page")) { //si no es preview ni guardar, es que quiero ver el contenido del fichero
+else if (file_exists("pages/$page")) { //if Preview neither Save have been clicked, then the user wants to see a page (file) content
     $content = file_get_contents("pages/$page");
 } else {
-    $content = 'Edite el contenido de la nueva página ' . $page;
+    $content = 'Start here to write the page content.';
 }
 
 ?>
@@ -69,8 +69,8 @@ else if (file_exists("pages/$page")) { //si no es preview ni guardar, es que qui
                 </div>
             </div>
             <div id="contents">
-                <span class="resizer" id="filaa" title="keep pressing to enlarge textbox">more</span>
-                <span class="resizer" id="filad" title="keep pressing to shrink textbox">less</span>
+                <span class="resizer" id="rowa" title="keep pressing to enlarge textbox">more</span>
+                <span class="resizer" id="rowd" title="keep pressing to shrink textbox">less</span>
                 <textarea name="content" rows="25" cols="80" class="prettyprint"><?=$content?></textarea>
                 <?wikiformatter($content)?>
             </div>
@@ -80,7 +80,7 @@ else if (file_exists("pages/$page")) { //si no es preview ni guardar, es que qui
         <!--
             var add = 0;
             $('.resizer').mousedown(function(){
-                if ($(this).attr('id') == 'filaa') add = 1;
+                if ($(this).attr('id') == 'rowa') add = 1;
                 else add = -1;
                 resizer();
             }).mouseup(function(){

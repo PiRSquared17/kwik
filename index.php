@@ -1,6 +1,6 @@
 <?
 require_once 'wikiformatter.php';
-//TODO limpiar $_POST['terms'] para prevenir inyecciones
+//TODO clean up $_POST['terms'] to prevent injection
 
 if (array_key_exists('new', $_POST)) {
 	header('HTTP/1.1 302 Found');
@@ -9,7 +9,7 @@ if (array_key_exists('new', $_POST)) {
 }
 
 $page = $_GET['page'];
-if (empty($page)) $page = 'Portada';
+if (empty($page)) $page = 'Main_page';
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -28,7 +28,7 @@ if (empty($page)) $page = 'Portada';
                     <p>powered by kwik</p>
                     <ul>
                         <li><input type="text" name="terms" accesskey="f" value="<?=(!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit" title="Searches for the term in existing pages">Search</button> <button name="new" type="submit" title="Creates a page with the specified name, or leads to the page if already exists">Create</button></li>
-                        <li><a href="<?=$path?>/Todas" accesskey="q" title="Lists all pages this wiki stores">All pages</a></li>
+                        <li><a href="<?=$path?>/All" accesskey="q" title="Lists all pages this wiki stores">All pages</a></li>
                         <li><a href="<?=$path?>/<?=$page?>/edit" accesskey="e" title="Changes this page to edition mode">Edit page</a></li>
                     </ul>
                 </div>
@@ -37,15 +37,15 @@ if (empty($page)) $page = 'Portada';
         <div id="contents">
 <?
 if (array_key_exists('search', $_POST)) {
-    $content = "==Resultados de la búsqueda==\n";
-    $content .= "===Coincidencias en nombres de páginas===\n";
+    $content = "==Search results==\n";
+    $content .= "===Page name matches===\n";
     $search = `cd pages; ls`;
     foreach (explode("\n", $search) as $l) {
         if (strpos(strtolower($l), strtolower($_POST['terms'])) !== false)
             $content .= "*[[$l]]\n";
     }
 
-    $content .= "\n===Coincidencias en textos===\n";
+    $content .= "\n===Page content matches===\n";
     $search = `cd pages; grep {$_POST['terms']} *`;
     $el_ant = '';
     foreach (explode("\n", $search) as $l) {
@@ -60,8 +60,8 @@ if (array_key_exists('search', $_POST)) {
     }
     wikiformatter($content);
 } else {
-    if ($page == 'Todas') {
-        $content = "==Todas las páginas==\n";
+    if ($page == 'All') {
+        $content = "==All pages==\n";
         $pages = array();
         if ($h = opendir('pages')) {
             while (false !== ($f = readdir($h))) {
@@ -81,7 +81,7 @@ if (array_key_exists('search', $_POST)) {
             $content = file_get_contents("pages/$page");
             wikiformatter($content);
         } else {
-            echo 'La página no existe. Pulse sobre el enlace superior para crearla.';
+            echo "Page doesn't exist. Click on the link to create it.";
         }
     }
 }

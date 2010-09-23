@@ -4,7 +4,7 @@ $path = '/kwik';
 
 function wikiformatter($t) {
 
-    //primera parte de análisis global
+    //first part: global analysis
 
     $t = str_replace("\r", '', $t);
 
@@ -12,7 +12,7 @@ function wikiformatter($t) {
     $t = str_replace('>', '&gt;', $t);
 
 
-    //segunda parte de análisis secuencial (troceando en líneas)
+    //second part: sequential analysis (line cutting)
     
     $pre = false;
     $br_before = false;
@@ -25,16 +25,16 @@ function wikiformatter($t) {
     foreach (explode("\n", $t) as $l) {
     
         switch ($l[0]) {
-            case '=': //conteo de headings para el resumen y los anchor
+            case '=': //headings counting, for anchors and digest
                 $anchor = rand();
                 preg_match('/^(=*).*$/', $l, $level);
-                $nivel = strlen($level[1]); //el número de = coincide con el heading
+                $nivel = strlen($level[1]); //the number of = matches heading number
                 $m = array();
                 $nl = '';
-                switch ($nivel) { //realizo las sustituciones
+                switch ($nivel) { //begin replacements
                     case 2:
                         preg_match('/^==([^=]*)==$/', $l, $m);
-                        $idx[0]++; //cada vez que hay un nuevo elemento a un cierto nivel, se resetean los niveles anidados (me evita mantener contadores de anterior...)
+                        $idx[0]++; //every time there is a new element in a certain level, nested levels are reset (it helps me avoid 'before' counters...)
                         $idx[1] = null;
                         $idx[2] = null;
                         $idx[3] = null;
@@ -56,13 +56,13 @@ function wikiformatter($t) {
                         break;
                 }
                 
-                $nest = ''; //número nivel anidación
+                $nest = ''; //nesting level number
                 for ($i=0; $i<$nivel-1; $i++) $nest .= $idx[$i].'.';
                 
                 $t3[] = '<a style="margin-left:' . ($nivel*30-60) . "px\" href=\"#$anchor\">$nest{$m[1]}</a>";
                 $l = "<h$nivel><a name=\"$anchor\">{$m[1]}</a></h$nivel>";
                 break;
-            case ' ': //control de texto preformateado
+            case ' ': //controlling preformatted texts
                 if ($pre == false) {
                     $li_level = 0;
                     if ($li_level < $li_level_old) {
@@ -76,12 +76,12 @@ function wikiformatter($t) {
                     $pre = true;
                 }
                 break;
-            case '#': //control de listas
+            case '#': //lists control
             case '*':
                 if ($pre == true) {$t2 .= "</pre>\n"; $pre = false;}
                 
                 preg_match('/^([\*#]*)(.*)$/', $l, $level);
-                $li_level = strlen($level[1]); //contando los * o # es el li_level
+                $li_level = strlen($level[1]); //counting * or # in li_level
                 $l = $level[2];
                 
                 if ($li_level < $li_level_old) {
@@ -101,7 +101,7 @@ function wikiformatter($t) {
 
                 break;
             default:
-                //línea vacía supone salto de línea, salvo que hayamos pintado antes otro salto de línea
+                //an empty line means line feed, unless there is another line feed right before
                 if (strlen($l) == 0 && $br_before == false) {
                     $l = "<br />\n";
                     $br_before = true;
@@ -125,28 +125,28 @@ function wikiformatter($t) {
 
             //error_log('['.date('Y/m/d H:i:s')."] :$l:\n", 3, 'this.log');
             
-            //control de negritas, cursivas y enlaces
+            //bold, italics and links control
             $l = preg_replace("/'''([^']*)'''/", '<strong>\\1</strong>', $l);
             $l = preg_replace("/''([^']*)''/", '<cite>\\1</cite>', $l);
-            //imágenes
-            $l = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $l); //la n y el espacio son opcionales
-            //enlaces internos
+            //images
+            $l = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $l); //the n and the space are optional
+            //internal links
             $l = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="\\1">\\2</a>', $l);
             $l = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="\\1">\\1</a>', $l);
-            //enlaces al exterior
+            //external links
             $l = preg_replace('/\[([^ ]*) (.*)\]/', '<a href="\\1">\\2</a>', $l);
             $l = preg_replace('/\[(.*)\]/', '<a href="\\1">\\1</a>', $l);
 
-            //control de tablas, no soporta listas dentro de tablas
+            //table control, it doesn't support lists inside tables yet
             if (substr($l, 0, 2) == '{|') $l = '<table><tr>';
             elseif (substr($l, 0, 2) == '|-') $l = '</tr><tr>';
             elseif (substr($l, 0, 2) == '|}') $l = '</tr></table>';
             elseif ($l[0] == '!') $l = '<th>'.substr($l, 1).'</th>';
             elseif ($l[0] == '|') $l = '<td>'.substr($l, 1).'</td>';
             
-            if (preg_match('/http(s?:\/\/[\w\/\.\?#=\-_%@\+&:~]*)/', $l, $m)==1) { //busca enlaces externos sueltos, no se puede hacer preg_replace pues estropea los ya encontrados
+            if (preg_match('/http(s?:\/\/[\w\/\.\?#=\-_%@\+&:~]*)/', $l, $m)==1) { //searches for scattered external links: i can't do preg_replace because it will destroy the links previously found
                 $p = strpos($l, $m[0]);
-                if ($p == 0 || $l{$p-1} != '"') { //TODO {} para cadenas será deprecado en PHP 6
+                if ($p == 0 || $l{$p-1} != '"') { //TODO using {} for strings will be deprecated by PHP 6
                     $l = str_replace($m[0], "<a href=\"{$m[0]}\">{$m[0]}</a>", $l);
                 }
             }
@@ -160,8 +160,8 @@ function wikiformatter($t) {
     }
     
     
-    //fin de parseo, impresión del texto final
-    //imprimo los encabezados (si hay más de 3) y luego el texto
+    //finished parsing, printing final text
+    //printing headings and digest (if there are more than 3) and then the text
     if (count($t3)>3) {
         echo "<div class=\"clearfix\"><ul id=\"jumpers\">\n";
         foreach ($t3 as $i) echo '<li>',$i,'</li>',"\n";
