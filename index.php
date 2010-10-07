@@ -1,4 +1,4 @@
-<?
+<?php
 /*
 Copyright (c) 2009 Daniel Cruz Horts
 
@@ -36,28 +36,28 @@ if (empty($page)) $page = 'Main_page';
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title><?=str_replace('_', ' ', $page)?></title>
+		<title><?php echo str_replace('_', ' ', $page)?></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <link rel="icon" href="<?=$path?>/res/favicon.png" type="image/png" />
-        <link rel="shortcut icon" href="<?=$path?>/res/favicon.png" type="image/png" />
-		<link type="text/css" rel="stylesheet" media="all" href="<?=$path?>/res/kwik.css" />
+        <link rel="icon" href="<?php echo $path?>/res/favicon.png" type="image/png" />
+        <link rel="shortcut icon" href="<?php echo $path?>/res/favicon.png" type="image/png" />
+		<link type="text/css" rel="stylesheet" media="all" href="<?php echo $path?>/res/kwik.css" />
     </head>
     <body>
-        <form action="<?=$path?>/" method="post">
+        <form action="<?php echo $path?>/" method="post">
             <div id="menubg">
                 <div id="menu">
-                    <h1><?=str_replace('_', ' ', $page)?></h1>
+                    <h1><?php echo str_replace('_', ' ', $page)?></h1>
                     <p>powered by kwik</p>
                     <ul>
-                        <li><input type="text" name="terms" accesskey="f" value="<?=(!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit" title="Searches for the term in existing pages">Search</button> <button name="new" type="submit" title="Creates a page with the specified name, or leads to the page if already exists">Create</button></li>
-                        <li><a href="<?=$path?>/All" accesskey="q" title="Lists all pages this wiki stores">All pages</a></li>
-                        <li><a href="<?=$path?>/<?=$page?>/edit" accesskey="e" title="Changes this page to edition mode">Edit page</a></li>
+                        <li><input type="text" name="terms" accesskey="f" value="<?php echo (!file_exists("pages/$page"))?$page:$_POST['terms']?>" /><button name="search" type="submit" title="Searches for the term in existing pages">Search</button> <button name="new" type="submit" title="Creates a page with the specified name, or leads to the page if already exists">Create</button></li>
+                        <li><a href="<?php echo $path?>/All" accesskey="q" title="Lists all pages this wiki stores">All pages</a></li>
+                        <li><a href="<?php echo $path?>/<?php echo $page?>/edit" accesskey="e" title="Changes this page to edition mode">Edit page</a></li>
                     </ul>
                 </div>
             </div>
         </form>
         <div id="contents">
-<?
+<?php
 if (array_key_exists('search', $_POST)) {
     $content = "==Search results==\n";
     $content .= "===Page name matches===\n";
