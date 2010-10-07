@@ -85,14 +85,14 @@ if (array_key_exists('search', $_POST)) {
     if ($page == 'All') {
         $content = "==All pages==\n";
         $pages = array();
-        if ($h = opendir('pages')) {
+        if ($h = @opendir('pages')) {
             while (false !== ($f = readdir($h))) {
                 if ($f != '.' && $f != '..') {
                     $pages[] = $f;
                 }
             }
             closedir($h);
-        }
+        } else @mkdir('pages');
         natsort($pages);
         foreach ($pages as $p) {
             $content .= "*[[$p]]\n";
