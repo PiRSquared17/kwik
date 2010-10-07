@@ -1,4 +1,4 @@
-<?
+<?php
 /*
 Copyright (c) 2009 Daniel Cruz Horts
 
