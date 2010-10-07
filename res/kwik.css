@@ -56,10 +56,12 @@ body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/res/greentrans.p
                 #menu a:hover, #menu button:hover {text-decoration: underline;}
                 #menu button {float: left; border: none; background: transparent; font: bold 13px verdana,sans-serif; color: #333333; padding: 0 5px;}
 #contents {width: 70%; margin: 20px auto 40px; background: #fff; position: relative; padding: 20px; -moz-border-radius: 20px; -webkit-border-radius: 20px; border-radius: 20px;}
+* html #contents {margin-top: 0;}
     #contents a {color: #099c09;}
     textarea {width: 100%; border: 1px solid #099c09; background: #d3f6cc; color: #333333; margin: 15px 0;}
     textarea:focus {border: 1px solid #fed43d; background: #fff; color: #000;}
         span.resizer {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; cursor: ns-resize;}
+        * html span.resizer {display: none;}
         #rowa {background: url(/kwik/res/rowa.gif) no-repeat;}
         #rowd {background: url(/kwik/res/rowd.gif) no-repeat;}
     table {border-left: 1px solid #099c09; border-top: 1px solid #099c09;}
