@@ -87,7 +87,7 @@ if (array_key_exists('search', $_POST)) {
         $pages = array();
         if ($h = @opendir('pages')) {
             while (false !== ($f = readdir($h))) {
-                if ($f != '.' && $f != '..') {
+                if ($f[0] != '.') {
                     $pages[] = $f;
                 }
             }
