@@ -83,7 +83,7 @@ if (array_key_exists('search', $_POST)) {
     wikiformatter($content);
 } else {
     if ($page == 'All') {
-        $content = "==All pages==\n";
+        $content = "==All pages==\n*[[Main_page]]\n\n";
         $pages = array();
         if ($h = @opendir('pages')) {
             while (false !== ($f = readdir($h))) {
