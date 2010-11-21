@@ -49,12 +49,12 @@ body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/res/greentrans.p
     #menu {margin: 0 auto; width: 70%; color: #333333; z-index: 0;}
         #menu p {float: left;}
         #menu ul {float: right; border-right: 1px solid #f5b508; border-left: 1px solid #fff09a;}
-            #menu li {float: left; padding: 10px; border-left: 1px solid #f5b508; border-right: 1px solid #fff09a;}
-                #menu input {border: 1px solid #099c09; background: #d3f6cc; color: #333333; float: left; padding: 0 5px 0 10px;}
+            #menu li {float: left; border-left: 1px solid #f5b508; border-right: 1px solid #fff09a;}
+                #menu input {border: 1px solid #099c09; background: #d3f6cc; color: #333333; float: left; margin: 10px 10px 0; padding: 0 5px 0 10px;}
                 #menu input:focus {background: #fff; color: #000;}
-                #menu a {display: block; color: #333333; font-weight: bold; text-decoration: none; line-height: 19px;}
-                #menu a:hover, #menu button:hover {text-decoration: underline;}
-                #menu button {float: left; border: none; background: transparent; font: bold 13px verdana,sans-serif; color: #333333; padding: 0 5px;}
+                #menu a {display: block; color: #333333; font-weight: bold; text-decoration: none; line-height: 18px; padding: 10px;}
+                #menu a:hover, #menu button:hover {background: #ffea7b; text-decoration: underline;}
+                #menu button {float: left; border: none; background: transparent; font: bold 13px verdana,sans-serif; color: #333333; padding: 10px;}
 #contents {width: 70%; margin: 30px auto 40px; background: #fff; position: relative; padding: 20px; -moz-border-radius: 20px; -webkit-border-radius: 20px; border-radius: 20px;}
 * html #contents {margin-top: 0;}
     #contents a {color: #099c09;}
