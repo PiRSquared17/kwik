@@ -50,7 +50,7 @@ body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/res/greentrans.p
         #menu p {float: left;}
         #menu ul {float: right; border-right: 1px solid #f5b508; border-left: 1px solid #fff09a;}
             #menu li {float: left; border-left: 1px solid #f5b508; border-right: 1px solid #fff09a;}
-                #menu input {border: 1px solid #099c09; background: #d3f6cc; color: #333333; float: left; margin: 10px 10px 0; padding: 0 5px 0 10px;}
+                #menu input {width: 110px; border: 1px solid #099c09; background: #d3f6cc; color: #333333; float: left; margin: 7px 0 0 10px; padding: 3px 5px 3px 10px;}
                 #menu input:focus {background: #fff; color: #000;}
                 #menu a {display: block; color: #333333; font-weight: bold; text-decoration: none; line-height: 18px; padding: 10px;}
                 #menu a:hover, #menu button:hover {background: #ffea7b; text-decoration: underline;}
