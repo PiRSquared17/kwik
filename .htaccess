@@ -1,4 +1,7 @@
+# routes for apache
+
 RewriteEngine on
 
-RewriteRule ^(\w*)$             /kwik/index.php?page=$1
-RewriteRule ^(.*)/edit$        /kwik/edit.php?page=$1&edit
+RewriteRule ^search            /kwik/index.php?action=search
+RewriteRule ^(\w*)$            /kwik/index.php?page=$1&action=show
+RewriteRule ^(\w*)/edit$       /kwik/index.php?page=$1&action=edit

@@ -43,9 +43,9 @@ table {border-spacing: 0;}
 /****************************************************************************/
 /* document' style */
 
-body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/res/greentrans.png) repeat-x bottom fixed;}
+body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/public/greentrans.png) repeat-x bottom fixed;}
 
-#menubg {position: fixed; width: 100%; top: 0; z-index: 100; background: #ffea7b url(/kwik/res/menu.gif) repeat-x bottom; border-bottom: 1px solid #099c09;}
+#menubg {position: fixed; width: 100%; top: 0; z-index: 100; background: #ffea7b url(/kwik/public/menu.gif) repeat-x bottom; border-bottom: 1px solid #099c09;}
     #menu {margin: 0 auto; width: 70%; color: #333333; z-index: 0;}
         #menu p {float: left;}
         #menu ul {float: right; border-right: 1px solid #f5b508; border-left: 1px solid #fff09a;}
@@ -62,8 +62,8 @@ body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/res/greentrans.p
     textarea:focus {border: 1px solid #fed43d; background: #fff; color: #000;}
         span.resizer {text-indent: -9999px; width: 16px; height: 16px; display: inline-block; cursor: ns-resize;}
         * html span.resizer {display: none;}
-        #rowa {background: url(/kwik/res/rowa.gif) no-repeat;}
-        #rowd {background: url(/kwik/res/rowd.gif) no-repeat;}
+        #rowa {background: url(/kwik/public/rowa.gif) no-repeat;}
+        #rowd {background: url(/kwik/public/rowd.gif) no-repeat;}
     table {border-left: 1px solid #099c09; border-top: 1px solid #099c09;}
         th, td {border-right: 1px solid #099c09; border-bottom: 1px solid #099c09; padding: 5px;}
     pre {border: 1px dashed #099c09; padding: 10px; color: #333333; margin: 10px 0;}

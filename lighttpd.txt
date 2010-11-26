@@ -1,0 +1,10 @@
+# routes for lighttpd
+# append this file to your /etc/lighttpd.conf
+
+server.modules  += ( "mod_rewrite" )
+
+url.rewrite-once = (
+               "^/kwik/search" => "/kwik/index.php?action=search",
+               "^/kwik/(\w*)$" => "/kwik/index.php?page=$1&action=show",
+               "^/kwik/(\w*)/edit$" => "/kwik/index.php?page=$1&action=edit"
+               )
