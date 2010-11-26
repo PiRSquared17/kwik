@@ -2,6 +2,7 @@
 
 RewriteEngine on
 
+RewriteRule ^pages             - [F,L]
 RewriteRule ^search            /kwik/index.php?action=search
 RewriteRule ^(\w*)$            /kwik/index.php?page=$1&action=show
 RewriteRule ^(\w*)/edit$       /kwik/index.php?page=$1&action=edit

@@ -4,6 +4,7 @@
 server.modules  += ( "mod_rewrite" )
 
 url.rewrite-once = (
+               "^/kwik/pages" => "- [F,L]",
                "^/kwik/search" => "/kwik/index.php?action=search",
                "^/kwik/(\w*)$" => "/kwik/index.php?page=$1&action=show",
                "^/kwik/(\w*)/edit$" => "/kwik/index.php?page=$1&action=edit"
