@@ -143,7 +143,7 @@ switch ($_REQUEST['action']) { //frontend controller
             die;
         }
 
-        $terms = empty($_REQUEST['terms']) ? $post : $_REQUEST['terms'];
+        $terms = empty($_REQUEST['terms']) ? $page : $_REQUEST['terms'];
 
         $page_pretty = 'Page search...';
 
