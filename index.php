@@ -52,7 +52,7 @@ if (!(array_key_exists($_SERVER['PHP_AUTH_USER'], $users) && $_SERVER['PHP_AUTH_
 }
 
 $terms = '';
-$form = '/kwik/search';
+$form = '/kwik/search/';
 
 $page = $_REQUEST['page'];
 if (empty($page))
@@ -111,6 +111,7 @@ switch ($_REQUEST['action']) { //frontend controller
         }
         
         if (array_key_exists('content', $_REQUEST) && array_key_exists('save', $_REQUEST)) {
+            @mkdir('pages');
             file_put_contents("pages/$page", $content);
             header('HTTP/1.1 302 Found');
             header("Location: /kwik/$page");
