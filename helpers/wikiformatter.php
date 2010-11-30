@@ -150,8 +150,8 @@ function wikiformatter($t) {
             //images
             $l = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $l); //the n and the space are optional
             //internal links
-            $l = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="\\1">\\2</a>', $l);
-            $l = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="\\1">\\1</a>', $l);
+            $l = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="/kwik/\\1">\\2</a>', $l);
+            $l = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="/kwik/\\1">\\1</a>', $l);
             //external links
             $l = preg_replace('/\[([^ ]*) (.*)\]/', '<a href="\\1">\\2</a>', $l);
             $l = preg_replace('/\[(.*)\]/', '<a href="\\1">\\1</a>', $l);
