@@ -1,6 +1,6 @@
 <?php defined('RENDER') or die('<h1>403 Forbidden</h1>');
 
-$menu = '<li><a href="/kwik" title="Cancels page edition">Cancel</a></li>
+$menu = '<li><a href="/kwik/" title="Cancels page edition">Cancel</a></li>
          <li><button name="preview" type="submit" accesskey="p" title="Page preview, without saving">Preview</button></li>
          <li><button name="save" type="submit" accesskey="s" title="Saves changes to this page">Save</button></li>
          <li><button name="delete" type="submit" title="Deletes current page from disk, forever">Delete</button></li>';
