@@ -23,6 +23,7 @@
                 <?php wikiformatter($content)?>
             </div>
         </form>
-        <?php echo $js?>
+        <script type="text/javascript" src="/kwik/public/jquery.js"></script>
+        <script type="text/javascript" src="/kwik/public/kwik.js"></script>
     </body>
 </html>
