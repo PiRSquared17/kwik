@@ -122,7 +122,7 @@ function wikiformatter($t) {
             default:
                 //an empty line means line feed, unless there is another line feed right before
                 if (strlen($l) == 0 && $br_before == false) {
-                    $l = "<br />\n";
+                    $l = "<br>\n";
                     $br_before = true;
                 } else {
                     $br_before = false;
@@ -148,7 +148,7 @@ function wikiformatter($t) {
             $l = preg_replace("/'''([^']*)'''/", '<strong>\\1</strong>', $l);
             $l = preg_replace("/''([^']*)''/", '<cite>\\1</cite>', $l);
             //images
-            $l = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1" />', $l); //the n and the space are optional
+            $l = preg_replace('/\[\[Imagen?: ?([^\[\]]*)\]\]/', '<img src="img/\\1" alt="\\1" title="\\1">', $l); //the n and the space are optional
             //internal links
             $l = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="/kwik/\\1">\\2</a>', $l);
             $l = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="/kwik/\\1">\\1</a>', $l);
