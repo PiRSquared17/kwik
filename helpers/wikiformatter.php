@@ -169,11 +169,16 @@ function wikiformatter($t) {
                     $l = str_replace($m[0], "<a href=\"{$m[0]}\">{$m[0]}</a>", $l);
                 }
             }
+
+            $l = trim($l);
+        } else {
+            $l = rtrim(substr($l, 1));
         }
 
         if ($li_level > 0) $t2 .= '<li>';
 
-        $t2 .= trim($l)."\n";
+        $t2 .= $l;
+        $t2 .= "\n";
 
         $li_level_old = $li_level;
     }
