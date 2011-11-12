@@ -1,5 +1,22 @@
 $(document).ready(function() {
 
+    //capture common keyboard shortcuts
+    //http://www.scottklarr.com/topic/126/how-to-create-ctrl-key-shortcuts-in-javascript/
+    var isCtrl = false;
+    $(document).keyup(function(e) {
+        if (e.which == 17) isCtrl = false;
+    }).keydown(function(e) {
+        if (e.which == 17) isCtrl = true;
+        if (e.which == 83 && isCtrl == true) { //Control+S
+            $('button[name=save]').click();
+            return false;
+        }
+        if (e.which == 75 && isCtrl == true) { //Control+K
+            $('input[name=terms]').focus();
+            return false;
+        }
+    });
+
     //association table between buttons and their ID
     var btnCounter = 0;
     var buttons = new Object;
