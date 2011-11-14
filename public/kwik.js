@@ -4,7 +4,7 @@ $(document).ready(function() {
     //http://www.scottklarr.com/topic/126/how-to-create-ctrl-key-shortcuts-in-javascript/
     var isCtrl = false;
     $(document).keyup(function(e) {
-        if (e.which == 17) isCtrl = false;
+        isCtrl = false;
     }).keydown(function(e) {
         if (e.which == 17) isCtrl = true;
         if (e.which == 83 && isCtrl == true) { //Control+S
