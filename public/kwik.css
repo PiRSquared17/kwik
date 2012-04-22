@@ -50,8 +50,10 @@ body {font: 13px Verdana,sans-serif; background: #fff url(/kwik/public/greentran
         #menu p {float: left;}
         #menu ul {float: right; border-right: 1px solid #f5b508; border-left: 1px solid #fff09a;}
             #menu li {float: left; border-left: 1px solid #f5b508; border-right: 1px solid #fff09a;}
-                #menu input {width: 110px; border: 1px solid #099c09; background: #d3f6cc; color: #333333; float: left; margin: 7px 0 0 10px; padding: 3px 5px 3px 10px;}
-                #menu input:focus {background: #fff; color: #000;}
+                #text_field {width: 110px; border: 1px solid #099c09; background: #d3f6cc; color: #333333; float: left; margin: 7px 0 0 10px; padding: 3px 5px 3px 10px;}
+                #text_field:focus {background: #fff; color: #000;}
+                #menu label {display: block; line-height: 17px; padding: 10px; float: left;}
+                #check_box {vertical-align: bottom;}
                 #menu a {float: left; color: #333333; font-weight: bold; text-decoration: none; line-height: 18px; padding: 10px;}
                 #menu a:hover {background: #ffea7b; text-decoration: underline;}
 #contents {width: 70%; margin: 30px auto 40px; background: #fff; position: relative; padding: 20px; -moz-border-radius: 20px; -webkit-border-radius: 20px; border-radius: 20px;}
