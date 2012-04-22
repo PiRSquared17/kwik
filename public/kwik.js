@@ -62,7 +62,18 @@ $(document).ready(function() {
     
     //confirmation before delete
     $('button[name=delete]').click(function(){
-       return confirm('This will delete the current page. Are you sure?');
+       if (confirm('This will delete the current page. Are you sure?')) {
+           $('input[name=method]').val('delete');
+           return true;
+       } else {
+           return false;
+       }
     });
-    
+
+    //create button
+    $('button[name=new]').click(function(){
+        window.location = '/kwik/' + $('input[name=terms]').val() + '/edit';
+        stopPropagation();
+    });
+
 });

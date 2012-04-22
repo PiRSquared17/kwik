@@ -8,13 +8,13 @@
         <link rel="stylesheet" media="all" href="/kwik/public/kwik.css">
     </head>
     <body>
-        <form action="<?php echo $form?>" method="post">
+        <form <?php echo $form_for?>>
             <div id="menubg">
                 <div id="menu">
                     <h1><?php echo $page_pretty?></h1>
                     <p>powered by kwik</p>
                     <ul>
-                        <?php echo $menu?>
+                        <?php require_once "app/views/$controller.menu.php"?>
                     </ul>
                 </div>
             </div>

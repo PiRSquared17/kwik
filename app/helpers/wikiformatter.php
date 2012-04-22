@@ -79,7 +79,7 @@ function wikiformatter($t) {
                 for ($i=0; $i<$nivel-1; $i++) $nest .= $idx[$i].'.';
                 
                 $t3[] = '<a style="margin-left:' . ($nivel*30-60) . "px\" href=\"#$anchor\">$nest{$m[1]}</a>";
-                $l = "<h$nivel><a name=\"$anchor\">{$m[1]}</a></h$nivel>";
+                $l = "<h$nivel id=\"$anchor\">{$m[1]}</h$nivel>";
                 break;
             case ' ': //controlling preformatted texts
                 if ($pre == false) {

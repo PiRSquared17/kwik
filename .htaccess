@@ -3,9 +3,9 @@
 DirectorySlash off #remember to AllowOverride Indexes in apache2.conf
 RewriteEngine on
 
-RewriteRule ^pages(\w*)$       /kwik/index.php?page=pages$1&action=show [L]
-RewriteRule ^pages/edit$       /kwik/index.php?page=pages&action=edit [L]
-RewriteRule ^pages/            - [F,L]
-RewriteRule ^search/$          /kwik/index.php?action=search
-RewriteRule ^(\w*)$            /kwik/index.php?page=$1&action=show
-RewriteRule ^(\w*)/edit$       /kwik/index.php?page=$1&action=edit
+RewriteRule ^$                  /kwik/index.php?controller=show [QSA]
+RewriteRule ^(\w*)$             /kwik/index.php?page=$1&controller=show
+RewriteRule ^(\w*)/edit$        /kwik/index.php?page=$1&controller=edit
+
+RewriteRule ^apps/              - [F,L]
+RewriteRule ^pages/             - [F,L]
