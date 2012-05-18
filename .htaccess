@@ -7,5 +7,5 @@ RewriteRule ^$                  /kwik/index.php?controller=show [QSA]
 RewriteRule ^(\w*)$             /kwik/index.php?page=$1&controller=show
 RewriteRule ^(\w*)/edit$        /kwik/index.php?page=$1&controller=edit
 
-RewriteRule ^apps/              - [F,L]
+RewriteRule ^app/               - [F,L]
 RewriteRule ^pages/             - [F,L]
