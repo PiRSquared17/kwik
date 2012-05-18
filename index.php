@@ -59,7 +59,7 @@ function redirect_to($location) {
 $controller = $_REQUEST['controller'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    switch ($_REQUEST['method']) {
+    switch ($_REQUEST['_method']) {
         case 'put':
             $http_method = 'put';
             break;
