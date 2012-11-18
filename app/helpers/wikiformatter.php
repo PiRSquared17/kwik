@@ -153,7 +153,7 @@ function wikiformatter($t) {
             $l = preg_replace('/\[\[([^\[\]\|]*)\|([^\[\]\|]*)\]\]/', '<a href="/kwik/\\1">\\2</a>', $l);
             $l = preg_replace('/\[\[([^\[\]]*)\]\]/', '<a href="/kwik/\\1">\\1</a>', $l);
             //external links
-            $l = preg_replace('/\[([^ ]*) (.*)\]/', '<a href="\\1">\\2</a>', $l);
+            $l = preg_replace('/\[([^ ]+) ([^\]]+)\]/', '<a href="\\1">\\2</a>', $l);
             $l = preg_replace('/\[(.*)\]/', '<a href="\\1">\\1</a>', $l);
 
             //table control, it doesn't support lists inside tables yet
@@ -163,7 +163,7 @@ function wikiformatter($t) {
             elseif ($l[0] == '!') $l = '<th>'.substr($l, 1).'</th>';
             elseif ($l[0] == '|') $l = '<td>'.substr($l, 1).'</td>';
             
-            if (preg_match('/http(s?:\/\/[\w\/\.\?#=\-_%@\+&:~]*)/', $l, $m)==1) { //searches for scattered external links: i can't do preg_replace because it will destroy the links previously found
+            if (preg_match('/http(s?:\/\/[\w\/\.\?#=\-_%@\+&:~]*)/', $l, $m) == 1) { //searches for scattered external links: i can't do preg_replace because it will destroy the links previously found
                 $p = strpos($l, $m[0]);
                 if ($p == 0 || $l{$p-1} != '"') { //TODO using {} for strings will be deprecated by PHP 6
                     $l = str_replace($m[0], "<a href=\"{$m[0]}\">{$m[0]}</a>", $l);
