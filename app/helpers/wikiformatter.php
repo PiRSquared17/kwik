@@ -205,7 +205,7 @@ function wikiformatter($t, $split_output = false) {
     $jumpers = '';
 
     if (count($t3) > 3) {
-        $jumpers .= "<ul <ul class=\"breadcrumb\" id=\"jumpers\">\n";
+        $jumpers .= "<ul class=\"breadcrumb\" id=\"jumpers\">\n";
         foreach ($t3 as $i) {
             $jumpers .= "<li>$i</li>\n";
         }
