@@ -3,7 +3,7 @@
 $form_for = 'action="/kwik/" method="get"';
 
 function get() {
-    global $page, $content, $page_pretty, $terms;
+    global $page, $content, $page_pretty, $terms, $jumpers;
 
     if (array_key_exists('terms', $_REQUEST)) {
 
@@ -64,8 +64,10 @@ function get() {
                 $content = file_get_contents("pages/$page");
             } else {
                 $terms = $page;
-                $content = "Page doesn't exist. Click on the link to create it.";
+                $content = "Page doesn't exist. Click on the Create button to create it.";
             }
         }
     }
+    
+    list($jumpers, $content) = wikiformatter($content, true);
 }

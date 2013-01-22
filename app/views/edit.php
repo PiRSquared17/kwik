@@ -1,3 +1,29 @@
-<span class="resizer" id="rowa" title="keep pressing to enlarge textbox">more</span>
-<span class="resizer" id="rowd" title="keep pressing to shrink textbox">less</span>
-<textarea name="content" rows="25" cols="80" class="prettyprint"><?php echo $content?></textarea>
+<div class="span3" id="panel">
+
+    <?php require '_breadcrumbs.php' ?>
+
+    <input type="hidden" name="_method" value="put">
+
+    <div class="well clearfix">
+        <div class="pull-left">
+            <button class="btn btn-primary" name="save" type="submit" accesskey="s" title="Saves changes to this page [Ctrl+S]">Save</button>
+            <label class="checkbox"><input type="checkbox" name="preview" id="check_box" accesskey="p" title="Click to preview page instead of definitely saving" value="1"> Preview changes</label>
+        </div>
+
+        <div class="pull-right">
+            <a class="btn" href="/kwik/<?php echo $page ?>" title="Cancels page edition">Cancel</a>
+            <button class="btn btn-danger" name="delete" type="submit" title="Deletes current page from disk, forever">Delete</button>
+        </div>
+    </div>
+
+    <?php echo $jumpers ?>
+
+</div>
+
+<div class="span9">
+
+    <textarea name="content" rows="25" class="prettyprint"><?php echo $unparsed_content ?></textarea>
+
+    <?php echo $content ?>
+
+</div>

@@ -75,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 include_once 'app/controllers/application.php';
 
+require_once 'app/helpers/wikiformatter.php';    
+
 require_once "app/controllers/$controller.php";
 
 if (!is_callable($http_method))
@@ -92,5 +94,4 @@ require_once "app/views/$view.php"; //renders view
 $yield = ob_get_contents();
 ob_end_clean();
 
-require_once 'app/helpers/wikiformatter.php';
 require_once 'app/views/layout.php';
