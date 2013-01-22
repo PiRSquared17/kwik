@@ -3,36 +3,40 @@
 $form_for = 'action="/kwik/' . $page . '/edit" method="post"';
 
 function get() {
-    global $page, $content;
+    global $page, $content, $unparsed_content, $jumpers;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
         redirect_to("/kwik/$page");
     }
 
     if (file_exists("pages/$page")) { //if Preview neither Save have been clicked, loads page from filesystem
-        $content = file_get_contents("pages/$page");
+        $unparsed_content = file_get_contents("pages/$page");
     } else {
-        $content = 'Start here to write the page content.';
+        $unparsed_content = 'Start here to write the page content.';
     }
+    
+    list($jumpers, $content) = wikiformatter($unparsed_content, true);
 }
 
 function put() {
-    global $page, $content;
+    global $page, $content, $jumpers;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
         redirect_to("/kwik/$page");
     }
 
-    $content = $_REQUEST['content'];
+    $unparsed_content = $_REQUEST['content'];
     if (get_magic_quotes_gpc ()) { //we're not interested in magic_quotes_gpc, and cannot be disabled at runtime
-        $content = stripslashes($content);
+        $unparsed_content = stripslashes($unparsed_content);
     }
 
     if (!array_key_exists('preview', $_REQUEST)) {
         @mkdir('pages');
-        file_put_contents("pages/$page", $content);
+        file_put_contents("pages/$page", $unparsed_content);
         redirect_to("/kwik/$page");
     }
+    
+    list($jumpers, $content) = wikiformatter($unparsed_content, true);
 }
 
 function delete() {
