@@ -44,7 +44,7 @@ function get() {
         $terms = '';
 
         if ($page == 'All') {
-            $content = "==All pages==\n*[[Main_page]]\n\n";
+            $content = "==All pages==\n";
             $pages = array();
             if ($h = @opendir('pages')) {
                 while (false !== ($f = readdir($h))) {
