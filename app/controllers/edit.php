@@ -19,7 +19,7 @@ function get() {
 }
 
 function put() {
-    global $page, $content, $jumpers;
+    global $page, $content, $unparsed_content, $jumpers;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
         redirect_to("/kwik/$page");
