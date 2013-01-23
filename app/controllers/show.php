@@ -1,7 +1,7 @@
 <?php
 
 function get() {
-    global $page, $content, $page_pretty, $terms, $jumpers;
+    global $page, $unparsed_content, $page_pretty, $terms, $jumpers;
 
     if (array_key_exists('terms', $_REQUEST)) {
 
@@ -9,30 +9,30 @@ function get() {
 
         $page_pretty = 'Page search...';
 
-        $content = "==Search results==\n";
-        $content .= "===Page name matches===\n";
+        $unparsed_content = "==Search results==\n";
+        $unparsed_content .= "===Page name matches===\n";
         $search = `cd pages; ls`;
         $found = false;
         foreach (explode("\n", $search) as $l) {
             if (strpos(strtolower($l), strtolower($terms)) !== false) {
-                $content .= "*[[$l]]\n";
+                $unparsed_content .= "*[[$l]]\n";
                 $found = true;
             }
         }
         if (!$found) {
-            $content .= "Nothing found... Click the Create button above to create a page for ''$terms''.\n";
+            $unparsed_content .= "Nothing found... Click the Create button above to create a page for ''$terms''.\n";
         }
 
-        $content .= "\n===Page content matches===\n";
+        $unparsed_content .= "\n===Page content matches===\n";
         $search = `cd pages; grep '$terms' *`; //TODO case insensitive search
         $el_ant = '';
         foreach (explode("\n", $search) as $l) {
             $el = explode(':', $l, 2);
             if (count($el) > 1) {
                 if ($el_ant != $el[0]) {
-                    $content .= "*[[{$el[0]}]]\n";
+                    $unparsed_content .= "*[[{$el[0]}]]\n";
                 }
-                $content .= " {$el[1]} \n";
+                $unparsed_content .= " {$el[1]} \n";
                 $el_ant = $el[0];
             }
         }
@@ -42,7 +42,7 @@ function get() {
         $terms = '';
 
         if ($page == 'All') {
-            $content = "==All pages==\n";
+            $unparsed_content = "==All pages==\n";
             $pages = array();
             if ($h = @opendir('pages')) {
                 while (false !== ($f = readdir($h))) {
@@ -55,17 +55,15 @@ function get() {
                 @mkdir('pages');
             natsort($pages);
             foreach ($pages as $p) {
-                $content .= "*[[$p]]\n";
+                $unparsed_content .= "*[[$p]]\n";
             }
         } else {
             if (file_exists("pages/$page")) {
-                $content = file_get_contents("pages/$page");
+                $unparsed_content = file_get_contents("pages/$page");
             } else {
                 $terms = $page;
-                $content = "Page doesn't exist. Click on the Create button to create it.";
+                $unparsed_content = "Page doesn't exist. Click on the Create button to create it.";
             }
         }
     }
-    
-    list($jumpers, $content) = wikiformatter($content, true);
 }

@@ -1,7 +1,7 @@
 <?php
 
 function get() {
-    global $page, $content, $unparsed_content, $jumpers;
+    global $page, $unparsed_content;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
         redirect_to("/$page");
@@ -12,12 +12,10 @@ function get() {
     } else {
         $unparsed_content = 'Start here to write the page content.';
     }
-    
-    list($jumpers, $content) = wikiformatter($unparsed_content, true);
 }
 
 function put() {
-    global $page, $content, $unparsed_content, $jumpers;
+    global $page, $unparsed_content;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
         redirect_to("/$page");
@@ -33,8 +31,6 @@ function put() {
         file_put_contents("pages/$page", $unparsed_content);
         redirect_to("/$page");
     }
-    
-    list($jumpers, $content) = wikiformatter($unparsed_content, true);
 }
 
 function delete() {

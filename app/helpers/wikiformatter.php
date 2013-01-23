@@ -22,7 +22,8 @@
   THE SOFTWARE.
  */
 
-function wikiformatter($t, $split_output = false) {
+function wikiformatter($t) {
+    global $content;
 
     //first part: global analysis
 
@@ -212,12 +213,7 @@ function wikiformatter($t, $split_output = false) {
         $jumpers .= "</ul>\n";
     }
 
-    if ($split_output) {
+    $content = $t2;
 
-        return array($jumpers, $t2);
-        
-    } else {
-
-        return $jumpers . $t2;
-    }
+    return $jumpers;
 }

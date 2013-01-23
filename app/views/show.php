@@ -6,7 +6,7 @@
         <a class="btn btn-primary" href="/<?php echo $page ?>/edit" accesskey="e" title="Changes this page to edition mode">Edit page</a>
     </div>
 
-    <?php echo $jumpers ?>
+    <?php echo wikiformatter($unparsed_content) ?>
 
 </div>
 

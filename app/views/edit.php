@@ -17,7 +17,7 @@
             </div>
         </div>
 
-        <?php echo $jumpers ?>
+        <?php echo wikiformatter($unparsed_content) ?>
 
     </div>
 
