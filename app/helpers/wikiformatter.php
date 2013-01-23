@@ -47,7 +47,6 @@ function wikiformatter($t) {
 
         switch ($l[0]) {
             case '=': //headings counting, for anchors and digest
-                $anchor = rand();
                 preg_match('/^(=*).*$/', $l, $level);
                 $nivel = strlen($level[1]); //the number of = matches heading number
                 $m = array();
@@ -81,6 +80,7 @@ function wikiformatter($t) {
                 for ($i = 0; $i < $nivel - 1; $i++)
                     $nest .= $idx[$i] . '.';
 
+                $anchor = str_replace(' ', '_', strtolower(trim($m[1])));
                 $t3[] = '<a style="margin-left:' . ($nivel * 30 - 60) . "px\" href=\"#$anchor\">$nest{$m[1]}</a>";
                 $l = "<h$nivel id=\"$anchor\">{$m[1]}</h$nivel>";
                 break;

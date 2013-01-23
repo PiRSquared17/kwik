@@ -36,7 +36,7 @@ $(document).ready(function() {
     var span3_width = $('#panel').width();
     $('#panel').css('position', 'fixed');
     $('#jumpers').css('overflow-y', 'auto');
-    $('#jumpers').css('height', $(window).height() - 170 + 'px');
+    $('#jumpers').css('height', $(window).height() - 230 + 'px');
     $('.span9').css('padding-left', span3_width);
     $('textarea').css('width', $(window).width() - $('#panel').width() - 70 + 'px');
 
