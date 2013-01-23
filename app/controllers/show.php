@@ -1,7 +1,5 @@
 <?php
 
-$form_for = 'action="/kwik/" method="get"';
-
 function get() {
     global $page, $content, $page_pretty, $terms, $jumpers;
 

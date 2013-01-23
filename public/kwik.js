@@ -29,7 +29,7 @@ $(document).ready(function() {
 
     //create button
     $('button[name=new]').click(function(){
-        window.location = '/kwik/' + $('input[name=terms]').val() + '/edit';
+        window.location = '/' + $('input[name=terms]').val() + '/edit';
         stopPropagation();
     });
     
