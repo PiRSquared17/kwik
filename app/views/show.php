@@ -3,7 +3,7 @@
     <?php require '_breadcrumbs.php' ?>
 
     <div class="well">
-        <a class="btn btn-primary" href="/kwik/<?php echo $page ?>/edit" accesskey="e" title="Changes this page to edition mode">Edit page</a>
+        <a class="btn btn-primary" href="/<?php echo $page ?>/edit" accesskey="e" title="Changes this page to edition mode">Edit page</a>
     </div>
 
     <?php echo $jumpers ?>

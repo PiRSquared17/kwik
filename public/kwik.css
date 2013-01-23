@@ -820,9 +820,6 @@ pre code {
   max-height: 340px;
   overflow-y: scroll;
 }
-form {
-  margin: 0 0 20px;
-}
 fieldset {
   padding: 0;
   margin: 0;
@@ -3820,7 +3817,7 @@ a.badge:hover {
 }
 body {
   padding-top: 60px;
-  background: #fff url(/kwik/public/body_bg.png) repeat-y;
+  background: #fff url(/public/body_bg.png) repeat-y;
 }
 #jumpers {
   margin: 20px 0 0 0;

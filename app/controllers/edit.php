@@ -1,12 +1,10 @@
 <?php
 
-$form_for = 'action="/kwik/' . $page . '/edit" method="post"';
-
 function get() {
     global $page, $content, $unparsed_content, $jumpers;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
-        redirect_to("/kwik/$page");
+        redirect_to("/$page");
     }
 
     if (file_exists("pages/$page")) { //if Preview neither Save have been clicked, loads page from filesystem
@@ -22,7 +20,7 @@ function put() {
     global $page, $content, $unparsed_content, $jumpers;
 
     if ($page == 'All' || empty($page)) { //prevents All from being edited: it is a special page, not to be found in the filesystem
-        redirect_to("/kwik/$page");
+        redirect_to("/$page");
     }
 
     $unparsed_content = $_REQUEST['content'];
@@ -33,7 +31,7 @@ function put() {
     if (!array_key_exists('preview', $_REQUEST)) {
         @mkdir('pages');
         file_put_contents("pages/$page", $unparsed_content);
-        redirect_to("/kwik/$page");
+        redirect_to("/$page");
     }
     
     list($jumpers, $content) = wikiformatter($unparsed_content, true);
@@ -46,5 +44,5 @@ function delete() {
         `cd pages; rm $page`;
     }
 
-    redirect_to('/kwik/');
+    redirect_to('/');
 }
