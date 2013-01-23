@@ -3,12 +3,12 @@
     <head>
         <title><?php echo $page_pretty ?></title>
         <meta charset="UTF-8">
-        <link rel="stylesheet" media="all" href="/kwik/public/kwik.css">
+        <link rel="stylesheet" media="all" href="/public/kwik.css">
     </head>
     <body>
-        <form <?php echo $form_for ?>>
-            <div class="navbar navbar-fixed-top">
-                <div class="navbar-inner">
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <form action="/" method="get">
                     <div class="container-fluid">
                         <a class="brand" href="#"><?php echo $page_pretty ?></a>
                         <ul class="nav pull-right">
@@ -20,15 +20,16 @@
                             </li>
                         </ul>
                     </div>
-                </div>
+                </form>
             </div>
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <?php echo $yield ?>
-                </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <?php echo $yield ?>
             </div>
-        </form>
-        <script src="/kwik/public/jquery-1.3.2.min.js"></script>
-        <script src="/kwik/public/kwik.js"></script>
-    </body>
+        </div>
+    </form>
+    <script src="/public/jquery-1.3.2.min.js"></script>
+    <script src="/public/kwik.js"></script>
+</body>
 </html>
