@@ -3826,6 +3826,13 @@ body {
 #jumpers li {
   display: block;
 }
+h2,
+h3,
+h4,
+h5,
+h6 {
+  border-bottom: 1px solid #099c09;
+}
 .span9 ul {
   list-style-position: inside;
 }
