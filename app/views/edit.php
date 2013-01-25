@@ -21,7 +21,7 @@
 
     </div>
 
-    <div class="span9">
+    <div class="span9 pull-right">
 
         <textarea name="content" rows="25" class="prettyprint"><?php echo $unparsed_content ?></textarea>
 

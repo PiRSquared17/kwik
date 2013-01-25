@@ -10,7 +10,7 @@
 
 </div>
 
-<div class="span9">
+<div class="span9 pull-right">
 
     <?php echo $content ?>
 

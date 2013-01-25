@@ -34,8 +34,9 @@ $(document).ready(function() {
     });
     
     $('#panel').css('position', 'fixed');
-    $('#jumpers').css('overflow-y', 'auto');
-    $('#jumpers').height($(window).height() - $('#jumpers').position().top - 106);
-    $('.span9').addClass('pull-right');
+    if ($('#jumpers').is('ul')) {
+        $('#jumpers').css('overflow-y', 'auto');
+        $('#jumpers').height($(window).height() - $('#jumpers').position().top - 106);
+    }
 
 });
