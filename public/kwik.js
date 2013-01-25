@@ -33,11 +33,9 @@ $(document).ready(function() {
         stopPropagation();
     });
     
-    var span3_width = $('#panel').width();
     $('#panel').css('position', 'fixed');
     $('#jumpers').css('overflow-y', 'auto');
-    $('#jumpers').css('height', $(window).height() - 230 + 'px');
-    $('.span9').css('padding-left', span3_width);
-    $('textarea').css('width', $(window).width() - $('#panel').width() - 70 + 'px');
+    $('#jumpers').height($(window).height() - $('#jumpers').position().top - 106);
+    $('.span9').addClass('pull-right');
 
 });
